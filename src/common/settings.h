@@ -485,11 +485,6 @@ struct Values {
     Setting<std::string> combo_button_buttons_2{"", Keys::combo_button_buttons_2};
     Setting<std::string> combo_button_buttons_3{"", Keys::combo_button_buttons_3};
     Setting<std::string> combo_button_buttons_4{"", Keys::combo_button_buttons_4};
-    // List of buttons (comma-separated button indices) triggered by each combo button slot.
-    Setting<std::string> combo_button_buttons{"", Keys::combo_button_buttons};
-    Setting<std::string> combo_button_buttons_2{"", Keys::combo_button_buttons_2};
-    Setting<std::string> combo_button_buttons_3{"", Keys::combo_button_buttons_3};
-    Setting<std::string> combo_button_buttons_4{"", Keys::combo_button_buttons_4};
     SwitchableSetting<bool> enable_gamemode{true, Keys::enable_gamemode};
 
     // Core
