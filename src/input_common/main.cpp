@@ -1,4 +1,4 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2017-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -7,7 +7,6 @@
 #include <thread>
 #include "common/param_package.h"
 #include "input_common/analog_from_button.h"
-#include "input_common/combo/combo_button.h"
 #include "input_common/combo/combo_button.h"
 #ifdef ENABLE_GCADAPTER
 #include "input_common/gcadapter/gc_adapter.h"
@@ -44,7 +43,6 @@ void Init() {
     keyboard = std::make_shared<Keyboard>();
     Input::RegisterFactory<Input::ButtonDevice>("keyboard", keyboard);
     Combo::Init();
-    Combo::Init();
     Input::RegisterFactory<Input::AnalogDevice>("analog_from_button",
                                                 std::make_shared<AnalogFromButton>());
     motion_emu = std::make_shared<MotionEmu>();
@@ -66,7 +64,6 @@ void Shutdown() {
 #endif
     Input::UnregisterFactory<Input::ButtonDevice>("keyboard");
     keyboard.reset();
-    Combo::Shutdown();
     Combo::Shutdown();
     Input::UnregisterFactory<Input::AnalogDevice>("analog_from_button");
     Input::UnregisterFactory<Input::MotionDevice>("motion_emu");
@@ -161,13 +158,13 @@ std::string AnalogToText(const Common::ParamPackage& param, const std::string& d
         }
         if (dir == "up") {
             if (name_y_str == "")
-                return "Axis " + axis_y_str + plus_str;
+                return "Axis " + axis_y_str + minus_str;
             else
-                return name_y_str + plus_str;
+                return name_y_str + minus_str;
         }
         if (dir == "down") {
             if (name_y_str == "")
-                return "Axis " + axis_y_str + minus_str;
+                return "Axis " + axis_y_str + plus_str;
             else
                 return name_y_str + plus_str;
         }

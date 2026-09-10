@@ -1,4 +1,4 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2017-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 #include <QKeySequence>
 #include <QWidget>
 #include "common/param_package.h"
@@ -71,14 +72,7 @@ private:
     QPushButton* combo_button_widget = nullptr;
     /// Longer capture window than a normal single bind, to give room to press several keys.
     static constexpr int COMBO_CAPTURE_TIMEOUT_MS = 8000;
-    /// True while capturing multiple simultaneous button presses for a combo binding.
-    bool combo_capture_mode = false;
-    /// Buttons captured so far during combo capture, in press order, de-duplicated.
-    std::vector<Common::ParamPackage> combo_buffer;
-    /// The button widget currently being bound in combo mode, for live label updates.
-    QPushButton* combo_button_widget = nullptr;
-    /// Longer capture window than a normal single bind, to give room to press several keys.
-    static constexpr int COMBO_CAPTURE_TIMEOUT_MS = 8000;
+
     static constexpr int ANALOG_SUB_BUTTONS_NUM = 9;
 
     /// Each button input is represented by a QPushButton.
@@ -145,20 +139,7 @@ private:
     /// Builds the final combo (or single-button) result from combo_buffer and finishes
     /// polling via SetPollingResult.
     void FinalizeCombo();
-    /// Like HandleClick, but captures every distinct button pressed during the polling
-    /// window instead of stopping at the first one, so multiple simultaneous inputs can be
-    /// bound together as a single combo.
-    void HandleComboClick(QPushButton* button,
-                          std::function<void(const Common::ParamPackage&)> new_input_setter,
-                          InputCommon::Polling::DeviceType type);
 
-    /// Adds a captured input to combo_buffer if it isn't already present, and updates the
-    /// bound widget's label to reflect how many keys have been captured so far.
-    void AddToComboBuffer(const Common::ParamPackage& params);
-
-    /// Builds the final combo (or single-button) result from combo_buffer and finishes
-    /// polling via SetPollingResult.
-    void FinalizeCombo();
     /// The key code of the previous state of the key being currently bound.
     int previous_key_code;
 

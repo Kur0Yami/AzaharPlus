@@ -1,4 +1,4 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -151,15 +151,6 @@ class Settings {
         const val HOTKEY_BUTTON_COMBO_MODIFIER_3 = "hotkey_button_combo_modifier_3"
         const val HOTKEY_BUTTON_COMBO_4 = "hotkey_button_combo_4"
         const val HOTKEY_BUTTON_COMBO_MODIFIER_4 = "hotkey_button_combo_modifier_4"
-        const val HOTKEY_BUTTON_COMBO = "hotkey_button_combo"
-        const val HOTKEY_BUTTON_COMBO_MODIFIER = "hotkey_button_combo_modifier"
-        const val HOTKEY_BUTTON_COMBO_2 = "hotkey_button_combo_2"
-        const val HOTKEY_BUTTON_COMBO_MODIFIER_2 = "hotkey_button_combo_modifier_2"
-        const val HOTKEY_BUTTON_COMBO_3 = "hotkey_button_combo_3"
-        const val HOTKEY_BUTTON_COMBO_MODIFIER_3 = "hotkey_button_combo_modifier_3"
-        const val HOTKEY_BUTTON_COMBO_4 = "hotkey_button_combo_4"
-        const val HOTKEY_BUTTON_COMBO_MODIFIER_4 = "hotkey_button_combo_modifier_4"
-        const val HOTKEY_BUTTON_COMBO = "hotkey_button_combo"
 
         val buttonKeys = listOf(
             KEY_BUTTON_A,
@@ -254,44 +245,6 @@ class Settings {
             R.string.button_combo_modifier_3,
             R.string.button_combo_4,
             R.string.button_combo_modifier_4
-            HOTKEY_BUTTON_COMBO,
-            HOTKEY_BUTTON_COMBO_MODIFIER,
-            HOTKEY_BUTTON_COMBO_2,
-            HOTKEY_BUTTON_COMBO_MODIFIER_2,
-            HOTKEY_BUTTON_COMBO_3,
-            HOTKEY_BUTTON_COMBO_MODIFIER_3,
-            HOTKEY_BUTTON_COMBO_4,
-            HOTKEY_BUTTON_COMBO_MODIFIER_4
-        )
-        val hotkeyTitles = listOf(
-            R.string.controller_hotkey_enable_button,
-            R.string.emulation_swap_screens,
-            R.string.emulation_cycle_landscape_layouts,
-            R.string.emulation_close_game,
-            R.string.emulation_toggle_pause,
-            R.string.emulation_quicksave,
-            R.string.emulation_quickload,
-            R.string.turbo_limit_hotkey,
-            R.string.button_combo,
-            R.string.button_combo_modifier,
-            R.string.button_combo_2,
-            R.string.button_combo_modifier_2,
-            R.string.button_combo_3,
-            R.string.button_combo_modifier_3,
-            R.string.button_combo_4,
-            R.string.button_combo_modifier_4
-            HOTKEY_BUTTON_COMBO
-        )
-        val hotkeyTitles = listOf(
-            R.string.controller_hotkey_enable_button,
-            R.string.emulation_swap_screens,
-            R.string.emulation_cycle_landscape_layouts,
-            R.string.emulation_close_game,
-            R.string.emulation_toggle_pause,
-            R.string.emulation_quicksave,
-            R.string.emulation_quickload,
-            R.string.turbo_limit_hotkey,
-            R.string.button_combo
         )
 
         // TODO: Move these in with the other setting keys in GenerateSettingKeys.cmake
@@ -314,14 +267,10 @@ class Settings {
                     SECTION_RENDERER,
                     SECTION_LAYOUT,
                     SECTION_NETWORK,
+                    SECTION_STORAGE,
                     SECTION_UTILITY,
                     SECTION_AUDIO,
                     SECTION_DEBUG,
-                    SECTION_THEME,
-                    SECTION_CUSTOM_LANDSCAPE,
-                    SECTION_CUSTOM_PORTRAIT,
-                    SECTION_PERFORMANCE_OVERLAY,
-                    SECTION_STORAGE,
                     SECTION_MISC
                 )
         }

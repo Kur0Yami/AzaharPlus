@@ -1,4 +1,4 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -151,9 +151,4 @@ object SettingKeys {
     external fun combo_button_buttons_2(): String
     external fun combo_button_buttons_3(): String
     external fun combo_button_buttons_4(): String
-    external fun combo_button_buttons(): String
-    external fun combo_button_buttons_2(): String
-    external fun combo_button_buttons_3(): String
-    external fun combo_button_buttons_4(): String
-    external fun combo_button_buttons(): String
 }

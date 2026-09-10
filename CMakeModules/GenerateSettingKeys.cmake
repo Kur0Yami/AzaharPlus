@@ -120,7 +120,7 @@ foreach(KEY IN ITEMS
     "log_filter"
     "log_regex_filter"
     "toggle_unique_data_console_type"
-    "break_on_unmapped_memory_access"
+    "enable_exception_handler"
     "use_integer_scaling"
     "layouts_to_cycle"
     "camera_inner_flip"
@@ -279,11 +279,6 @@ if (ANDROID)
         "combo_button_buttons_2"
         "combo_button_buttons_3"
         "combo_button_buttons_4"
-        "combo_button_buttons"
-        "combo_button_buttons_2"
-        "combo_button_buttons_3"
-        "combo_button_buttons_4"
-        "combo_button_buttons"
     )
         string(REPLACE "_" "_1" KEY_JNI_ESCAPED ${KEY})
         set(SETTING_KEY_LIST "${SETTING_KEY_LIST}\n\"${KEY}\",")

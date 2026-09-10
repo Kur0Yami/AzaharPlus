@@ -1,4 +1,4 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -278,18 +278,17 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     IntSetting.TURBO_LIMIT.defaultValue.toFloat()
                 )
             )
-            if (!BuildUtil.isGooglePlayBuild
-                && false) {
-                add(
-                    SwitchSetting(
-                        BooleanSetting.CHECK_FOR_UPDATES,
-                        R.string.check_for_updates,
-                        R.string.check_for_updates_description,
-                        BooleanSetting.CHECK_FOR_UPDATES.key,
-                        BooleanSetting.CHECK_FOR_UPDATES.defaultValue,
-                        isEnabled = !BuildConfig.DEBUG
-                    )
+            add(
+                SwitchSetting(
+                    BooleanSetting.CHECK_FOR_UPDATES,
+                    R.string.check_for_updates,
+                    R.string.check_for_updates_description,
+                    BooleanSetting.CHECK_FOR_UPDATES.key,
+                    BooleanSetting.CHECK_FOR_UPDATES.defaultValue,
+                    isEnabled = !BuildConfig.DEBUG
                 )
+            )
+            if (!BuildUtil.isGooglePlayBuild) {
                 add(
                     SingleChoiceSetting(
                         IntSetting.UPDATE_CHECK_CHANNEL,
@@ -302,16 +301,16 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                         isEnabled = (!BuildConfig.DEBUG && BooleanSetting.CHECK_FOR_UPDATES.boolean)
                     )
                 )
-            }
-            add(
-                SwitchSetting(
-                    BooleanSetting.ANDROID_HIDE_IMAGES,
-                    R.string.android_hide_images,
-                    R.string.android_hide_images_description,
-                    BooleanSetting.ANDROID_HIDE_IMAGES.key,
-                    BooleanSetting.ANDROID_HIDE_IMAGES.defaultValue
+                add(
+                    SwitchSetting(
+                        BooleanSetting.ANDROID_HIDE_IMAGES,
+                        R.string.android_hide_images,
+                        R.string.android_hide_images_description,
+                        BooleanSetting.ANDROID_HIDE_IMAGES.key,
+                        BooleanSetting.ANDROID_HIDE_IMAGES.defaultValue
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -395,7 +394,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                         checkCountryCompatibility()
                     }
                 override val key = IntSetting.EMULATED_REGION.key
-                override val section = Settings.SECTION_SYSTEM
+                override val section = null
                 override val isRuntimeEditable = false
                 override val valueAsString get() = int.toString()
                 override val defaultValue = IntSetting.EMULATED_REGION.defaultValue
@@ -476,7 +475,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.username,
                     0,
                     null,
-                    "AzaharPlus",
+                    "AZAHAR",
                     10
                 )
             )
@@ -957,56 +956,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.comboOptionValues,
                     IntListSetting.COMBO_BUTTON_BUTTONS_4.key,
                     IntListSetting.COMBO_BUTTON_BUTTONS_4.defaultValue
-                    IntListSetting.COMBO_BUTTON_BUTTONS,
-                    R.string.combo_button_settings,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS.defaultValue
-                )
-            )
-
-            add(
-                MultiChoiceSetting(
-                    IntListSetting.COMBO_BUTTON_BUTTONS_2,
-                    R.string.combo_button_settings_2,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_2.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_2.defaultValue
-                )
-            )
-
-            add(
-                MultiChoiceSetting(
-                    IntListSetting.COMBO_BUTTON_BUTTONS_3,
-                    R.string.combo_button_settings_3,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_3.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_3.defaultValue
-                )
-            )
-
-            add(
-                MultiChoiceSetting(
-                    IntListSetting.COMBO_BUTTON_BUTTONS_4,
-                    R.string.combo_button_settings_4,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_4.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_4.defaultValue
-                    IntListSetting.COMBO_BUTTON_BUTTONS,
-                    R.string.combo_button_settings,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS.defaultValue
                 )
             )
         }

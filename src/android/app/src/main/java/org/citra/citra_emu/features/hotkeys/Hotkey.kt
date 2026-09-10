@@ -1,4 +1,4 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -21,13 +21,4 @@ enum class Hotkey(val button: Int) {
     COMBO_MODIFIER_3(10014),
     COMBO_BUTTON_4(10015),
     COMBO_MODIFIER_4(10016)
-    COMBO_BUTTON(10009),
-    COMBO_MODIFIER(10010),
-    COMBO_BUTTON_2(10011),
-    COMBO_MODIFIER_2(10012),
-    COMBO_BUTTON_3(10013),
-    COMBO_MODIFIER_3(10014),
-    COMBO_BUTTON_4(10015),
-    COMBO_MODIFIER_4(10016)
-    COMBO_BUTTON(10009)
 }

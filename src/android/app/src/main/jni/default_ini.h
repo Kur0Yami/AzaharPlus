@@ -1,4 +1,4 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2014-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -33,9 +33,9 @@ constexpr std::array android_config_omitted_keys = {
     Settings::Keys::audio_encoder,
     Settings::Keys::audio_encoder_options,
     Settings::Keys::audio_bitrate,
-    Settings::Keys::last_artic_base_addr, // On Android, this value is stored as a "preference"
-    Settings::Keys::break_on_unmapped_memory_access, // Does nothing as the error is ignored
-    Settings::Keys::use_gdbstub, // GDB functionality disabled by deafult on Android
+    Settings::Keys::last_artic_base_addr,     // On Android, this value is stored as a "preference"
+    Settings::Keys::enable_exception_handler, // Does nothing as the error is ignored
+    Settings::Keys::use_gdbstub,              // GDB functionality disabled by deafult on Android
     Settings::Keys::gdbstub_port,
 };
 
@@ -89,19 +89,6 @@ static const char* android_config_default_file_content = (BOOST_HANA_STRING(R"(
 
 # List of buttons which will be triggered by combo button slot 4. (Default [] or empty)
 )") DECLARE_KEY(combo_button_buttons_4) BOOST_HANA_STRING(R"(
-# List of buttons which will be triggered by the combo button. (Default [] or empty)
-)") DECLARE_KEY(combo_button_buttons) BOOST_HANA_STRING(R"(
-
-# List of buttons which will be triggered by combo button slot 2. (Default [] or empty)
-)") DECLARE_KEY(combo_button_buttons_2) BOOST_HANA_STRING(R"(
-
-# List of buttons which will be triggered by combo button slot 3. (Default [] or empty)
-)") DECLARE_KEY(combo_button_buttons_3) BOOST_HANA_STRING(R"(
-
-# List of buttons which will be triggered by combo button slot 4. (Default [] or empty)
-)") DECLARE_KEY(combo_button_buttons_4) BOOST_HANA_STRING(R"(
-# List of buttons which will be triggered by the combo button. (Default [] or empty)
-)") DECLARE_KEY(combo_button_buttons) BOOST_HANA_STRING(R"(
 
 [Core]
 # Whether to use the Just-In-Time (JIT) compiler for CPU emulation
@@ -116,7 +103,7 @@ static const char* android_config_default_file_content = (BOOST_HANA_STRING(R"(
 
 [Renderer]
 # Whether to render using OpenGL
-# 1: OpenGL ES (default), 2: Vulkan
+# 1: OpenGL ES, 2: Vulkan (default)
 )") DECLARE_KEY(graphics_api) BOOST_HANA_STRING(R"(
 
 # Whether to compile shaders on multiple worker threads (Vulkan only)
