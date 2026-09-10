@@ -136,6 +136,14 @@ class InputBindingSetting(val abstractSetting: AbstractSetting, titleId: Int) :
                 Settings.HOTKEY_BUTTON_COMBO_4 -> Hotkey.COMBO_BUTTON_4.button
                 Settings.HOTKEY_BUTTON_COMBO_MODIFIER_4 -> Hotkey.COMBO_MODIFIER_4.button
                 Settings.HOTKEY_BUTTON_COMBO -> Hotkey.COMBO_BUTTON.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER -> Hotkey.COMBO_MODIFIER.button
+                Settings.HOTKEY_BUTTON_COMBO_2 -> Hotkey.COMBO_BUTTON_2.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER_2 -> Hotkey.COMBO_MODIFIER_2.button
+                Settings.HOTKEY_BUTTON_COMBO_3 -> Hotkey.COMBO_BUTTON_3.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER_3 -> Hotkey.COMBO_MODIFIER_3.button
+                Settings.HOTKEY_BUTTON_COMBO_4 -> Hotkey.COMBO_BUTTON_4.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER_4 -> Hotkey.COMBO_MODIFIER_4.button
+                Settings.HOTKEY_BUTTON_COMBO -> Hotkey.COMBO_BUTTON.button
                 else -> -1
             }
 
