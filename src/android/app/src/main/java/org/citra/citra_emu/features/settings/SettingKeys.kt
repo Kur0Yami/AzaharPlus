@@ -148,4 +148,8 @@ object SettingKeys {
     external fun performance_overlay_position(): String
     external fun enable_secondary_display(): String
     external fun combo_button_buttons(): String
+    external fun combo_button_buttons_2(): String
+    external fun combo_button_buttons_3(): String
+    external fun combo_button_buttons_4(): String
+    external fun combo_button_buttons(): String
 }

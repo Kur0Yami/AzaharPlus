@@ -276,6 +276,10 @@ if (ANDROID)
         "performance_overlay_position"
         "enable_secondary_display"
         "combo_button_buttons"
+        "combo_button_buttons_2"
+        "combo_button_buttons_3"
+        "combo_button_buttons_4"
+        "combo_button_buttons"
     )
         string(REPLACE "_" "_1" KEY_JNI_ESCAPED ${KEY})
         set(SETTING_KEY_LIST "${SETTING_KEY_LIST}\n\"${KEY}\",")

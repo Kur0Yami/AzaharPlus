@@ -17,6 +17,7 @@
 #include "citra_qt/configuration/configure_motion_touch.h"
 #include "common/param_package.h"
 #include "core/core.h"
+#include "input_common/combo/combo_button.h"
 #include "ui_configure_input.h"
 
 const std::array<std::string, ConfigureInput::ANALOG_SUB_BUTTONS_NUM>
@@ -185,6 +186,8 @@ ConfigureInput::ConfigureInput(Core::System& _system, QWidget* parent)
                         button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
                         ApplyConfiguration();
                     });
+                    context_menu.addAction(tr("Bind Combo..."), this, [&] {
+                        HandleComboClick(
                     context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
                 });
     }
@@ -320,7 +323,87 @@ ConfigureInput::ConfigureInput(Core::System& _system, QWidget* parent)
     connect(ui->buttonRename, &QPushButton::clicked, this, &ConfigureInput::RenameProfile);
 
     connect(ui->profile, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
+
+    connect(ui->profile, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
         ApplyConfiguration();
+        Settings::LoadProfile(i);
+        LoadConfiguration();
+    });
+
+    timeout_timer->setSingleShot(true);
+    connect(timeout_timer.get(), &QTimer::timeout, this, [this]() {
+        if (combo_capture_mode && !combo_buffer.empty()) {
+            FinalizeCombo();
+        } else {
+            SetPollingResult({}, true);
+        }
+    });
+
+    connect(poll_timer.get(), &QTimer::timeout, this, [this]() {
+
+void ConfigureInput::HandleComboClick(
+    QPushButton* button, std::function<void(const Common::ParamPackage&)> new_input_setter,
+    InputCommon::Polling::DeviceType type) {
+    previous_key_code = QKeySequence(button->text())[0].toCombined();
+    button->setText(tr("[hold combo keys...]"));
+    button->setFocus();
+
+    input_setter = new_input_setter;
+    combo_capture_mode = true;
+    combo_buffer.clear();
+    combo_button_widget = button;
+
+    device_pollers = InputCommon::Polling::GetPollers(type);
+
+    // Keyboard keys can only be used as button devices
+    want_keyboard_keys = type == InputCommon::Polling::DeviceType::Button;
+
+    for (auto& poller : device_pollers) {
+        poller->Start();
+    }
+
+    grabKeyboard();
+    grabMouse();
+    timeout_timer->start(COMBO_CAPTURE_TIMEOUT_MS);
+    poll_timer->start(200); // Check for new inputs every 200ms
+}
+
+void ConfigureInput::AddToComboBuffer(const Common::ParamPackage& params) {
+    const std::string serialized = params.Serialize();
+    for (const auto& existing : combo_buffer) {
+        if (existing.Serialize() == serialized) {
+            return; // already captured this exact input
+        }
+    }
+    combo_buffer.push_back(params);
+    if (combo_button_widget) {
+        combo_button_widget->setText(tr("[%1 keys, release to finish]").arg(combo_buffer.size()));
+    }
+}
+
+void ConfigureInput::FinalizeCombo() {
+    if (combo_buffer.size() == 1) {
+        // Only one key was ever captured; treat it like a normal single binding.
+        SetPollingResult(combo_buffer.front(), false);
+        return;
+    }
+
+    std::vector<std::string> serialized_sub_bindings;
+    serialized_sub_bindings.reserve(combo_buffer.size());
+    for (const auto& sub_binding : combo_buffer) {
+        serialized_sub_bindings.push_back(sub_binding.Serialize());
+    }
+
+    const std::string combo_serialized =
+        InputCommon::Combo::BuildComboParam(serialized_sub_bindings);
+    SetPollingResult(Common::ParamPackage{combo_serialized}, false);        if (combo_capture_mode) {
+            // Accumulate every distinct button-down seen this tick instead of finishing on
+            // the first one, so several buttons pressed together can be captured as a combo.
+            for (auto& poller : device_pollers) {
+                Common::ParamPackage params = poller->GetNextInput();
+                if (params.Has("engine") && params.Has("down")) {
+                    params.Erase("down");
+                    AddToComboBuffer(params);        ApplyConfiguration();
         Settings::LoadProfile(i);
         LoadConfiguration();
     });
@@ -350,6 +433,7 @@ void ConfigureInput::ApplyConfiguration() {
     Settings::values.use_artic_base_controller = ui->use_artic_controller->isChecked();
 
     Settings::values.current_input_profile.maptype =
+        static_cast<Settings::InputMappingType>(ui->comboBoxMappingType->currentIndex());
         static_cast<Settings::InputMappingType>(ui->comboBoxMappingType->currentIndex());
 
     std::transform(buttons_param.begin(), buttons_param.end(),
@@ -427,6 +511,7 @@ QList<QKeySequence> ConfigureInput::GetUsedKeyboardKeys() {
 void ConfigureInput::LoadConfiguration() {
 
     ui->use_artic_controller->setChecked(Settings::values.use_artic_base_controller.GetValue());
+    ui->comboBoxMappingType->setCurrentIndex(
     ui->comboBoxMappingType->setCurrentIndex(
         static_cast<int>(Settings::values.current_input_profile.maptype));
     ui->use_artic_controller->setEnabled(!system.IsPoweredOn());
@@ -575,6 +660,7 @@ void ConfigureInput::HandleClick(QPushButton* button,
     button->setFocus();
 
     input_setter = new_input_setter;
+    combo_capture_mode = false;
 
     device_pollers = InputCommon::Polling::GetPollers(type);
 
@@ -606,6 +692,26 @@ void ConfigureInput::SetPollingResult(const Common::ParamPackage& params, bool a
 
     UpdateButtonLabels();
     input_setter.reset();
+    combo_capture_mode = false;
+    combo_buffer.clear();
+    combo_button_widget = nullptr;
+}
+
+void ConfigureInput::keyPressEvent(QKeyEvent* event) {
+    if (!input_setter || !event)
+        return;
+
+    // Ignore OS auto-repeat while a key is held, otherwise combo capture would see the same
+    // key "pressed" dozens of times.
+    if (event->isAutoRepeat()) {
+        return;
+    }
+
+    if (event->key() == Qt::Key_Escape) {
+        // In combo mode, Escape finishes capture (like releasing all keys) instead of
+        // discarding everything, as long as at least one key was captured.
+        if (combo_capture_mode && !combo_buffer.empty()) {
+            FinalizeCombo();
 }
 
 void ConfigureInput::keyPressEvent(QKeyEvent* event) {
@@ -624,7 +730,11 @@ void ConfigureInput::keyPressEvent(QKeyEvent* event) {
             }
             SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
                              false);
-        } else {
+
+    if (combo_capture_mode) {
+        // Keep capturing further keys; the user finishes with Escape or the capture window
+        // simply times out.
+        AddToComboBuffer(key_param);        } else {
             // Escape key wasn't pressed and we don't want any keyboard keys, so don't stop
             // polling
             return;

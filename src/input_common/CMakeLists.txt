@@ -1,6 +1,8 @@
 add_library(input_common STATIC EXCLUDE_FROM_ALL
     analog_from_button.cpp
     analog_from_button.h
+    combo/combo_button.cpp
+    combo/combo_button.h
     keyboard.cpp
     keyboard.h
     main.cpp
