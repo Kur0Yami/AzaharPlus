@@ -959,6 +959,28 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     IntListSetting.COMBO_BUTTON_BUTTONS_4.defaultValue
                 )
             )
+
+            add(
+                MultiChoiceSetting(
+                    IntListSetting.COMBO_BUTTON_BUTTONS_5,
+                    R.string.combo_button_settings_5,
+                    R.string.combo_button_settings_description,
+                    R.array.comboOptions,
+                    R.array.comboOptionValues,
+                    IntListSetting.COMBO_BUTTON_BUTTONS_5.key,
+                    IntListSetting.COMBO_BUTTON_BUTTONS_5.defaultValue
+                )
+            )
+
+            add(
+                SwitchSetting(
+                    BooleanSetting.COMBO_USE_MODIFIER,
+                    R.string.combo_use_modifier,
+                    R.string.combo_use_modifier_description,
+                    BooleanSetting.COMBO_USE_MODIFIER.key,
+                    BooleanSetting.COMBO_USE_MODIFIER.defaultValue
+                )
+            )
         }
     }
 

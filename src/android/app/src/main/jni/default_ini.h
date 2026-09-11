@@ -90,6 +90,12 @@ static const char* android_config_default_file_content = (BOOST_HANA_STRING(R"(
 # List of buttons which will be triggered by combo button slot 4. (Default [] or empty)
 )") DECLARE_KEY(combo_button_buttons_4) BOOST_HANA_STRING(R"(
 
+# List of buttons which will be triggered by combo button slot 5. (Default [] or empty)
+)") DECLARE_KEY(combo_button_buttons_5) BOOST_HANA_STRING(R"(
+
+# Whether Combo Buttons require holding their matching Combo Modifier to fire. (Default 1)
+)") DECLARE_KEY(combo_use_modifier) BOOST_HANA_STRING(R"(
+
 [Core]
 # Whether to use the Just-In-Time (JIT) compiler for CPU emulation
 # 0: Interpreter (slow), 1 (default): JIT (fast)

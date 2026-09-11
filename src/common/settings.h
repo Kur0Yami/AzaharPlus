@@ -487,6 +487,8 @@ struct Values {
     Setting<std::string> combo_button_buttons_2{"", Keys::combo_button_buttons_2};
     Setting<std::string> combo_button_buttons_3{"", Keys::combo_button_buttons_3};
     Setting<std::string> combo_button_buttons_4{"", Keys::combo_button_buttons_4};
+    Setting<std::string> combo_button_buttons_5{"", Keys::combo_button_buttons_5};
+    Setting<bool> combo_use_modifier{true, Keys::combo_use_modifier};
 #endif
 
     SwitchableSetting<bool> enable_gamemode{true, Keys::enable_gamemode};

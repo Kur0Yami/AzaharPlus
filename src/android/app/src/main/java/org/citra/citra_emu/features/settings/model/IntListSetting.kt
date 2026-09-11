@@ -49,6 +49,13 @@ enum class IntListSetting(
         Settings.SECTION_CONTROLS,
         listOf(),
         canBeEmpty = true
+    ),
+
+    COMBO_BUTTON_BUTTONS_5(
+        SettingKeys.combo_button_buttons_5(),
+        Settings.SECTION_CONTROLS,
+        listOf(),
+        canBeEmpty = true
     );
 
     private var backingList: List<Int> = defaultValue

@@ -180,6 +180,8 @@
     <string name="button_combo_modifier_3">Combo Modifier 3</string>
     <string name="button_combo_4">Combo Button 4</string>
     <string name="button_combo_modifier_4">Combo Modifier 4</string>
+    <string name="button_combo_5">Combo Button 5</string>
+    <string name="button_combo_modifier_5">Combo Modifier 5</string>
     <string name="button_x" translatable="false">X</string>
     <string name="button_y" translatable="false">Y</string>
     <string name="button_l" translatable="false">L</string>
@@ -196,6 +198,9 @@
     <string name="combo_button_settings_2">Configure Combo Button 2</string>
     <string name="combo_button_settings_3">Configure Combo Button 3</string>
     <string name="combo_button_settings_4">Configure Combo Button 4</string>
+    <string name="combo_button_settings_5">Configure Combo Button 5</string>
+    <string name="combo_use_modifier">Use Combo Modifier</string>
+    <string name="combo_use_modifier_description">When enabled, hold the matching Combo Modifier to fire a Combo Button. When disabled, Combo Buttons fire immediately when pressed, without needing a modifier held.</string>
 
     <!-- System files strings -->
     <string name="setup_system_files">System Files</string>

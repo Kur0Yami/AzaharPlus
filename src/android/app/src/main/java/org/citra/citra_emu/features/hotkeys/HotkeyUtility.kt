@@ -12,6 +12,7 @@ import org.citra.citra_emu.CitraApplication
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
 import org.citra.citra_emu.display.ScreenAdjustmentUtil
+import org.citra.citra_emu.features.settings.model.BooleanSetting
 import org.citra.citra_emu.features.settings.model.Settings
 import org.citra.citra_emu.features.settings.model.view.InputBindingSetting
 import org.citra.citra_emu.utils.ComboHelper
@@ -38,7 +39,8 @@ class HotkeyUtility(
         ComboSlot(Hotkey.COMBO_BUTTON.button, Hotkey.COMBO_MODIFIER.button, 1),
         ComboSlot(Hotkey.COMBO_BUTTON_2.button, Hotkey.COMBO_MODIFIER_2.button, 2),
         ComboSlot(Hotkey.COMBO_BUTTON_3.button, Hotkey.COMBO_MODIFIER_3.button, 3),
-        ComboSlot(Hotkey.COMBO_BUTTON_4.button, Hotkey.COMBO_MODIFIER_4.button, 4)
+        ComboSlot(Hotkey.COMBO_BUTTON_4.button, Hotkey.COMBO_MODIFIER_4.button, 4),
+        ComboSlot(Hotkey.COMBO_BUTTON_5.button, Hotkey.COMBO_MODIFIER_5.button, 5)
     )
     private val comboTriggerButtons = comboSlots.map { it.triggerButton }.toSet()
 
@@ -61,6 +63,9 @@ class HotkeyUtility(
         val enableButton =
             PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
                 .getString(Settings.HOTKEY_ENABLE, "")
+        val comboUseModifier =
+            PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
+                .getBoolean(BooleanSetting.COMBO_USE_MODIFIER.key, BooleanSetting.COMBO_USE_MODIFIER.defaultValue)
         val thisKeyIsEnableButton = buttonSet.contains(Hotkey.ENABLE.button)
         hotkeyIsEnabled = hotkeyIsEnabled || enableButton == "" || thisKeyIsEnableButton
 
@@ -76,7 +81,8 @@ class HotkeyUtility(
         // physical key can keep working normally when the modifier isn't held.
         val firingHotkeys = buttonSet.filter { hotkeyButtons.contains(it) }.filter { btn ->
             if (btn in comboTriggerButtons) {
-                comboModifierHeld[btn] == true
+                // Standalone mode: trigger fires immediately, no modifier hold required.
+                !comboUseModifier || comboModifierHeld[btn] == true
             } else {
                 true
             }
@@ -235,6 +241,10 @@ class HotkeyUtility(
 
             Hotkey.COMBO_BUTTON_4.button -> {
                 ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, 4)
+            }
+
+            Hotkey.COMBO_BUTTON_5.button -> {
+                ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, 5)
             }
 
             else -> {}
