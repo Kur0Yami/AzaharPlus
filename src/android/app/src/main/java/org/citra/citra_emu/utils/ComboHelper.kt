@@ -10,7 +10,7 @@ import org.citra.citra_emu.features.settings.model.IntListSetting
 object ComboHelper {
     /**
      * Fires (or releases) the button list configured for the given combo slot.
-     * @param slot 1-4, matching Combo Button 1-4 in the Hotkeys settings.
+     * @param slot 1-5, matching Combo Button 1-5 in the Hotkeys settings.
      */
     fun comboActivate(buttonStatus: Int, slot: Int = 1) {
         val comboArray = when (slot) {
@@ -18,6 +18,7 @@ object ComboHelper {
             2 -> IntListSetting.COMBO_BUTTON_BUTTONS_2.list
             3 -> IntListSetting.COMBO_BUTTON_BUTTONS_3.list
             4 -> IntListSetting.COMBO_BUTTON_BUTTONS_4.list
+            5 -> IntListSetting.COMBO_BUTTON_BUTTONS_5.list
             else -> emptyList()
         }
         for (nativeButton in comboArray) {

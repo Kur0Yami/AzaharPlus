@@ -190,6 +190,10 @@
         <item>@string/button_swap</item>
         <item>@string/button_turbo</item>
         <item>@string/button_combo</item>
+        <item>@string/button_combo_2</item>
+        <item>@string/button_combo_3</item>
+        <item>@string/button_combo_4</item>
+        <item>@string/button_combo_5</item>
     </string-array>
 
     <string-array name="comboOptions">

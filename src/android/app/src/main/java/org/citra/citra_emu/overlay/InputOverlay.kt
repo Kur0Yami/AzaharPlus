@@ -11,6 +11,8 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.VectorDrawable
 import android.util.AttributeSet
@@ -44,6 +46,24 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
     private val overlayJoysticks: MutableSet<InputOverlayDrawableJoystick> = HashSet()
+
+    // Maps each on-screen Combo Button's hotkey id to its slot number (1-5), used both to
+    // fire the right ComboHelper slot on tap and to draw a small number badge on the icon
+    // so the 5 combo buttons are distinguishable from each other.
+    private val comboOverlaySlots = mapOf(
+        Hotkey.COMBO_BUTTON.button to 1,
+        Hotkey.COMBO_BUTTON_2.button to 2,
+        Hotkey.COMBO_BUTTON_3.button to 3,
+        Hotkey.COMBO_BUTTON_4.button to 4,
+        Hotkey.COMBO_BUTTON_5.button to 5
+    )
+    private val comboBadgePaint = Paint().apply {
+        color = Color.WHITE
+        isAntiAlias = true
+        isFakeBoldText = true
+        textAlign = Paint.Align.CENTER
+        setShadowLayer(4f, 0f, 1f, Color.BLACK)
+    }
     private var isInEditMode = false
     private var buttonBeingConfigured: InputOverlayDrawableButton? = null
     private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
@@ -79,6 +99,23 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
         overlayButtons.forEach { it.draw(canvas) }
         overlayDpads.forEach { it.draw(canvas) }
         overlayJoysticks.forEach { it.draw(canvas) }
+        drawComboBadges(canvas)
+    }
+
+    // Draws a small slot number (1-5) centered on each on-screen Combo Button so they can
+    // be told apart, since they otherwise all share the same icon.
+    private fun drawComboBadges(canvas: Canvas) {
+        overlayButtons.forEach { button ->
+            val slot = comboOverlaySlots[button.id] ?: return@forEach
+            val bounds = button.bounds
+            comboBadgePaint.textSize = bounds.height() * 0.4f
+            canvas.drawText(
+                slot.toString(),
+                bounds.centerX().toFloat(),
+                bounds.centerY() - (comboBadgePaint.ascent() + comboBadgePaint.descent()) / 2,
+                comboBadgePaint
+            )
+        }
     }
 
     private fun swapScreen() {
@@ -186,8 +223,11 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                         button.status == NativeLibrary.ButtonState.PRESSED
                     ) {
                         TurboHelper.toggleTurbo(true)
-                    } else if (button.id == Hotkey.COMBO_BUTTON.button) {
-                        ComboHelper.comboActivate(button.status)
+                    } else {
+                        val comboSlot = comboOverlaySlots[button.id]
+                        if (comboSlot != null) {
+                            ComboHelper.comboActivate(button.status, comboSlot)
+                        }
                     }
 
                     NativeLibrary.onGamePadEvent(
@@ -609,6 +649,54 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                 )
             )
         }
+
+        if (preferences.getBoolean("buttonToggle17", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.COMBO_BUTTON_2.button,
+                    orientation
+                )
+            )
+        }
+
+        if (preferences.getBoolean("buttonToggle18", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.COMBO_BUTTON_3.button,
+                    orientation
+                )
+            )
+        }
+
+        if (preferences.getBoolean("buttonToggle19", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.COMBO_BUTTON_4.button,
+                    orientation
+                )
+            )
+        }
+
+        if (preferences.getBoolean("buttonToggle20", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.COMBO_BUTTON_5.button,
+                    orientation
+                )
+            )
+        }
     }
 
     fun refreshControls() {
@@ -830,6 +918,38 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                 Hotkey.COMBO_BUTTON.button.toString() + "-Y",
                 resources.getInteger(R.integer.N3DS_BUTTON_COMBO_Y).toFloat() / 1000 * maxY
             )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_2.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_2_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_2.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_2_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_3.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_3_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_3.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_3_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_4.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_4_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_4.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_4_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_5.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_5.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_Y).toFloat() / 1000 * maxY
+            )
             .apply()
     }
 
@@ -988,6 +1108,38 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             .putFloat(
                 Hotkey.COMBO_BUTTON.button.toString() + portrait + "-Y",
                 resources.getInteger(R.integer.N3DS_BUTTON_COMBO_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_2.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_2_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_2.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_2_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_3.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_3_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_3.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_3_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_4.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_4_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_4.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_4_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_5.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_5.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_PORTRAIT_Y).toFloat() / 1000 * maxY
             )
             .apply()
     }
