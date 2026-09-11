@@ -1,4 +1,4 @@
-// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
+// Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -267,10 +267,14 @@ class Settings {
                     SECTION_RENDERER,
                     SECTION_LAYOUT,
                     SECTION_NETWORK,
-                    SECTION_STORAGE,
                     SECTION_UTILITY,
                     SECTION_AUDIO,
                     SECTION_DEBUG,
+                    SECTION_THEME,
+                    SECTION_CUSTOM_LANDSCAPE,
+                    SECTION_CUSTOM_PORTRAIT,
+                    SECTION_PERFORMANCE_OVERLAY,
+                    SECTION_STORAGE,
                     SECTION_MISC
                 )
         }

@@ -1,4 +1,4 @@
-// Copyright 2014-2026 Citra Emulator Project / Azahar Emulator Project
+// Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -481,10 +481,13 @@ struct Values {
     Setting<bool> use_artic_base_controller{false, Keys::use_artic_base_controller};
 
     // List of buttons (comma-separated button indices) triggered by each combo button slot.
+    // Android-only: the Combo Button hotkey feature only exists on the Android touchscreen overlay.
+#ifdef ANDROID
     Setting<std::string> combo_button_buttons{"", Keys::combo_button_buttons};
     Setting<std::string> combo_button_buttons_2{"", Keys::combo_button_buttons_2};
     Setting<std::string> combo_button_buttons_3{"", Keys::combo_button_buttons_3};
     Setting<std::string> combo_button_buttons_4{"", Keys::combo_button_buttons_4};
+#endif
 
     SwitchableSetting<bool> enable_gamemode{true, Keys::enable_gamemode};
 
@@ -517,11 +520,8 @@ struct Values {
     Setting<bool> apply_region_free_patch{true, Keys::apply_region_free_patch};
 
     // Renderer
-    // clang-format off
     SwitchableSetting<GraphicsAPI, true> graphics_api{
-#if defined(ANDROID) && defined(ENABLE_VULKAN) // Prefer Vulkan on Android, OpenGL on everything else
-        GraphicsAPI::Vulkan,
-#elif defined(ENABLE_OPENGL)
+#if defined(ENABLE_OPENGL)
         GraphicsAPI::OpenGL,
 #elif defined(ENABLE_VULKAN)
         GraphicsAPI::Vulkan,
@@ -532,7 +532,6 @@ struct Values {
 #error "At least one renderer must be enabled."
 #endif
         GraphicsAPI::Software, GraphicsAPI::Vulkan, Keys::graphics_api};
-    // clang-format on
     SwitchableSetting<u32> physical_device{0, Keys::physical_device};
     Setting<bool> use_gles{false, Keys::use_gles};
     Setting<bool> renderer_debug{false, Keys::renderer_debug};
@@ -554,7 +553,7 @@ struct Values {
     SwitchableSetting<bool> use_display_refresh_rate_detection{
         true, Keys::use_display_refresh_rate_detection};
     Setting<bool> use_shader_jit{true, Keys::use_shader_jit};
-    SwitchableSetting<u32, true> resolution_factor{1, 0, 18, Keys::resolution_factor};
+    SwitchableSetting<u32, true> resolution_factor{1, 0, 10, Keys::resolution_factor};
     SwitchableSetting<bool> use_integer_scaling{false, Keys::use_integer_scaling};
     SwitchableSetting<double, true> frame_limit{100, 0, 1000, Keys::frame_limit};
     SwitchableSetting<double, true> turbo_limit{200, 0, 1000, Keys::turbo_limit};
@@ -665,11 +664,10 @@ struct Values {
     Setting<bool> instant_debug_log{false, Keys::instant_debug_log};
     Setting<bool> enable_rpc_server{false, Keys::enable_rpc_server};
     Setting<bool> toggle_unique_data_console_type{false, Keys::toggle_unique_data_console_type};
-    Setting<bool> enable_exception_handler{false, Keys::enable_exception_handler};
     Setting<bool> break_on_unmapped_memory_access{false, Keys::break_on_unmapped_memory_access};
 
     // WebService
-    Setting<std::string> web_api_url{"", Keys::web_api_url};
+    Setting<std::string> web_api_url{"http://88.198.47.46:5000", Keys::web_api_url};
     Setting<std::string> network_token{"", Keys::network_token};
 
     // Miscellaneous

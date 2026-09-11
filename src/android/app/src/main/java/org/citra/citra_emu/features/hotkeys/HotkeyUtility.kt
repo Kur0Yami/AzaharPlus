@@ -1,4 +1,4 @@
-// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
+// Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -188,7 +188,7 @@ class HotkeyUtility(
 
     fun handleHotkey(bindedButton: Int): Boolean {
         when (bindedButton) {
-            Hotkey.SWAP_SCREEN.button -> screenAdjustmentUtil.swapScreen()
+            Hotkey.SWAP_SCREEN.button -> screenAdjustmentUtil.swapScreen(false)
 
             Hotkey.CYCLE_LAYOUT.button -> screenAdjustmentUtil.cycleLayouts()
 

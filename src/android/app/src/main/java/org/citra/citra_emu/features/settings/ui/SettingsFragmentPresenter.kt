@@ -1,4 +1,4 @@
-// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
+// Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -278,17 +278,18 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     IntSetting.TURBO_LIMIT.defaultValue.toFloat()
                 )
             )
-            add(
-                SwitchSetting(
-                    BooleanSetting.CHECK_FOR_UPDATES,
-                    R.string.check_for_updates,
-                    R.string.check_for_updates_description,
-                    BooleanSetting.CHECK_FOR_UPDATES.key,
-                    BooleanSetting.CHECK_FOR_UPDATES.defaultValue,
-                    isEnabled = !BuildConfig.DEBUG
+            if (!BuildUtil.isGooglePlayBuild
+                && false) {
+                add(
+                    SwitchSetting(
+                        BooleanSetting.CHECK_FOR_UPDATES,
+                        R.string.check_for_updates,
+                        R.string.check_for_updates_description,
+                        BooleanSetting.CHECK_FOR_UPDATES.key,
+                        BooleanSetting.CHECK_FOR_UPDATES.defaultValue,
+                        isEnabled = !BuildConfig.DEBUG
+                    )
                 )
-            )
-            if (!BuildUtil.isGooglePlayBuild) {
                 add(
                     SingleChoiceSetting(
                         IntSetting.UPDATE_CHECK_CHANNEL,
@@ -301,16 +302,16 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                         isEnabled = (!BuildConfig.DEBUG && BooleanSetting.CHECK_FOR_UPDATES.boolean)
                     )
                 )
-                add(
-                    SwitchSetting(
-                        BooleanSetting.ANDROID_HIDE_IMAGES,
-                        R.string.android_hide_images,
-                        R.string.android_hide_images_description,
-                        BooleanSetting.ANDROID_HIDE_IMAGES.key,
-                        BooleanSetting.ANDROID_HIDE_IMAGES.defaultValue
-                    )
-                )
             }
+            add(
+                SwitchSetting(
+                    BooleanSetting.ANDROID_HIDE_IMAGES,
+                    R.string.android_hide_images,
+                    R.string.android_hide_images_description,
+                    BooleanSetting.ANDROID_HIDE_IMAGES.key,
+                    BooleanSetting.ANDROID_HIDE_IMAGES.defaultValue
+                )
+            )
         }
     }
 
@@ -394,7 +395,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                         checkCountryCompatibility()
                     }
                 override val key = IntSetting.EMULATED_REGION.key
-                override val section = null
+                override val section = Settings.SECTION_SYSTEM
                 override val isRuntimeEditable = false
                 override val valueAsString get() = int.toString()
                 override val defaultValue = IntSetting.EMULATED_REGION.defaultValue
@@ -475,7 +476,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.username,
                     0,
                     null,
-                    "AZAHAR",
+                    "AzaharPlus",
                     10
                 )
             )

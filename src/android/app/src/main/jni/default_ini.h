@@ -1,4 +1,4 @@
-// Copyright 2014-2026 Citra Emulator Project / Azahar Emulator Project
+// Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -33,9 +33,9 @@ constexpr std::array android_config_omitted_keys = {
     Settings::Keys::audio_encoder,
     Settings::Keys::audio_encoder_options,
     Settings::Keys::audio_bitrate,
-    Settings::Keys::last_artic_base_addr,     // On Android, this value is stored as a "preference"
-    Settings::Keys::enable_exception_handler, // Does nothing as the error is ignored
-    Settings::Keys::use_gdbstub,              // GDB functionality disabled by deafult on Android
+    Settings::Keys::last_artic_base_addr, // On Android, this value is stored as a "preference"
+    Settings::Keys::break_on_unmapped_memory_access, // Does nothing as the error is ignored
+    Settings::Keys::use_gdbstub, // GDB functionality disabled by deafult on Android
     Settings::Keys::gdbstub_port,
 };
 
@@ -103,7 +103,7 @@ static const char* android_config_default_file_content = (BOOST_HANA_STRING(R"(
 
 [Renderer]
 # Whether to render using OpenGL
-# 1: OpenGL ES, 2: Vulkan (default)
+# 1: OpenGL ES (default), 2: Vulkan
 )") DECLARE_KEY(graphics_api) BOOST_HANA_STRING(R"(
 
 # Whether to compile shaders on multiple worker threads (Vulkan only)

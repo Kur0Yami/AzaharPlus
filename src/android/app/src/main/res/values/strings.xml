@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- FILE MODIFIED BY AzaharPlus APRIL 2025 -->
 <resources>
 
     <!-- General application strings -->
-    <string name="app_name" translatable="false">Azahar</string>
-    <string name="app_disclaimer">This software will run applications for the Nintendo 3DS handheld game console. No game titles are included.\n\nBefore you can begin with emulating, please select a folder to store Azahar\'s user data in.\n\nWhat\'s this:\n<a href='https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage'>Wiki - Citra Android user data and storage</a></string>
+    <string name="app_name" translatable="false">AzaharPlus</string>
+    <string name="app_disclaimer">This software will run applications for the Nintendo 3DS handheld game console. No game titles are included.\n\nBefore you can begin with emulating, please select a folder to store Azahar\'s user data in.\n\nWhat\'s this:\n<a href='https://web.archive.org/web/20240304193549/https://github.com/citra-emu/citra/wiki/Citra-Android-user-data-and-storage'>Wiki - Citra Android user data and storage</a></string>
     <string name="app_notification_channel_name" translatable="false">Azahar</string>
     <string name="app_notification_channel_id" translatable="false">Azahar</string>
     <string name="app_notification_channel_description">Azahar 3DS emulator notifications</string>
@@ -12,10 +13,14 @@
 
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Settings</string>
+    <string name="grid_menu_core_export_zippass">Export ZipPass Data</string>
+    <string name="grid_menu_core_import_zippass">Import ZipPass Data</string>
     <string name="home_options">Options</string>
     <string name="home_search">Search</string>
     <string name="home_games">Applications</string>
     <string name="settings_description">Configure emulator settings</string>
+    <string name="export_zippass_description">Export StreetPass data as a zip file</string>
+    <string name="import_zippass_description">Import StreetPass data as a zip file</string>
     <string name="install_game_content">Install CIA file</string>
     <string name="install_game_content_description">Install applications, updates or DLC</string>
     <string name="share_log">Share Log</string>
@@ -30,8 +35,10 @@
     <string name="select_games_folder">Select Applications Folder</string>
     <string name="select_games_folder_description">Allows Azahar to populate the application list</string>
     <string name="about">About</string>
+    <string name="clear_streetpass_config">Clear StreetPass Configuration</string>
     <string name="citra_description">An open-source 3DS emulator</string>
     <string name="about_description">Build version, credits, and more</string>
+    <string name="clear_streetpass_config_description">In case something went wrong with ZipPass</string>
     <string name="games_dir_selected">Application directory selected</string>
     <string name="select_citra_user_folder_home_description">Changes the files that Azahar uses to load applications</string>
     <string name="theme_and_color_description">Modify the look of the app</string>
@@ -61,13 +68,13 @@
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="contributors">Contributors</string>
     <string name="contributors_description">Contributors who made Azahar possible</string>
-    <string name="contributors_link" translatable="false">https://github.com/azahar-emu/azahar/graphs/contributors</string>
+    <string name="contributors_link" translatable="false">https://github.com/AzaharPlus/AzaharPlus/graphs/contributors</string>
     <string name="licenses_description">Projects used by Azahar for Android</string>
     <string name="build">Build</string>
     <string name="licenses">Licenses</string>
-    <string name="support_link" translatable="false">https://discord.gg/4ZjMpAp3M6</string>
-    <string name="website_link" translatable="false">https://azahar-emu.org/</string>
-    <string name="github_link" translatable="false">https://github.com/azahar-emu/azahar</string>
+    <string name="support_link" translatable="false">https://github.com/AzaharPlus/AzaharPlus/discussions</string>
+    <string name="website_link" translatable="false">https://github.com/AzaharPlus/</string>
+    <string name="github_link" translatable="false">https://github.com/AzaharPlus/AzaharPlus</string>
 
     <!-- Setup strings -->
     <string name="welcome">Welcome!</string>
@@ -95,7 +102,7 @@
     <string name="permission_denied">Permission denied</string>
     <string name="add_games_warning">Skip selecting applications folder?</string>
     <string name="add_games_warning_description">Software won\'t be displayed in the Applications list if a folder isn\'t selected.</string>
-    <string name="add_games_warning_help" translatable="false">https://github.com/azahar-emu/azahar/wiki/Dumping-Games</string>
+    <string name="add_games_warning_help" translatable="false">https://web.archive.org/web/20240304210021/https://citra-emu.org/wiki/dumping-game-cartridges/</string>
     <string name="permissions">Permissions</string>
     <string name="select_emulator_data_folders">Data Folders</string>
     <string name="select_emulator_data_folders_description"><![CDATA[Select data folders<br/>(User folder is required)]]></string>
@@ -104,18 +111,18 @@
     <string name="warning_skip">Skip</string>
     <string name="warning_cancel">Cancel</string>
     <string name="select_citra_user_folder">Select User Folder</string>
-    <string name="select_citra_user_folder_description"><![CDATA[Select your <a href="https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage">user data</a> directory with the button below.]]></string>
+    <string name="select_citra_user_folder_description"><![CDATA[Select your <a href="https://web.archive.org/web/20240304193549/https://github.com/citra-emu/citra/wiki/Citra-Android-user-data-and-storage">user data</a> directory with the button below.]]></string>
     <string name="select_which_user_directory_to_use">You appear to have user directories set for both Lime3DS and Azahar. This is likely because you upgraded to Azahar, and when prompted chose a different user directory than what was being used for Lime3DS.\n\nThis may have resulted in you thinking you lost saves or other settings - we apologize if that happened.\n\nWould you like to go back to using your original Lime3DS user directory, restoring settings and save games from Lime3DS, or keep your current Azahar user directory?\n\nNeither directory will be deleted, regardless of your choice, and you may freely switch between them using the Select User Folder option.</string>
     <string name="keep_current_azahar_directory">Keep Current Azahar Directory</string>
     <string name="use_prior_lime3ds_directory">Use Prior Lime3DS Directory</string>
     <string name="select">Select</string>
     <string name="cannot_skip">You can\'t skip setting up the user folder</string>
     <string name="cannot_skip_directory_description">This step is required to allow Azahar to work. Please select a directory and then you can continue.</string>
-    <string name="selecting_user_directory_without_write_permissions">You have lost write permissions on your <a href="https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage">user data</a> directory, where saves and other information are stored. This can happen after some app or Android updates. Please re-select the directory to regain permissions so you can continue.</string>
+    <string name="selecting_user_directory_without_write_permissions">You have lost write permissions on your <a href="https://web.archive.org/web/20240304193549/https://github.com/citra-emu/citra/wiki/Citra-Android-user-data-and-storage">user data</a> directory, where saves and other information are stored. This can happen after some app or Android updates. Please re-select the directory to regain permissions so you can continue.</string>
     <string name="invalid_selection">Invalid Selection</string>
     <string name="invalid_user_directory">The user directory selection was invalid.\nPlease re-select the user directory, ensuring that you navigate to it from the root of your device\'s storage.</string>
     <string name="filesystem_permission_lost">Azahar has lost permission to manage files on this device. This can happen after some app or Android updates. Please re-grant this permission on the next screen to continue using the app.</string>
-    <string name="cannot_skip_directory_help" translatable="false">https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage</string>
+    <string name="cannot_skip_directory_help" translatable="false">https://web.archive.org/web/20240304193549/https://github.com/citra-emu/citra/wiki/Citra-Android-user-data-and-storage</string>
     <string name="set_up_theme_settings">Theme Settings</string>
     <string name="setup_theme_settings_description">Configure your theme preferences for Azahar.</string>
     <string name="setup_set_theme">Set Theme</string>
@@ -192,12 +199,15 @@
 
     <!-- System files strings -->
     <string name="setup_system_files">System Files</string>
+    <string name="system_files_download">Download System Files</string>
     <string name="setup_system_files_description">Perform system file operations such as installing system files or booting the Home Menu</string>
+    <string name="system_files_description">Download system files to get Mii files, boot the HOME menu, and more</string>
     <string name="setup_tool_connect">Connect to Artic Setup Tool</string>
     <string name="setup_system_files_preamble"><![CDATA[Azahar needs console unique data and firmware files from a real console to be able to use some of its features. Such files and data can be set up with the <a href=https://github.com/azahar-emu/ArticSetupTool>Azahar Artic Setup Tool</a>.<br>Notes:<ul><li><b>This operation will install console unique data to Azahar, do not share your user or nand folders after performing the setup process!</b></li><li>While doing the setup process, Azahar will link to the console running the setup tool. You can unlink the console later from the System Files tab in the emulator options menu.</li><li>Do not go online with both Azahar and your 3DS console at the same time after setting up system files, as this could cause issues.</li><li>Old 3DS setup is needed for the New 3DS setup to work (setting up both is recommended).</li><li>Both setup modes will work regardless of the model of the console running the setup tool.</li></ul>]]></string>
     <string name="setup_system_files_detect">Fetching current system files status, please wait...</string>
     <string name="delete_system_files">Unlink Console Unique Data</string>
     <string name="delete_system_files_description"><![CDATA[This action will unlink your real console from Azahar, with the following consequences:<br><ul><li>Your OTP, SecureInfo and LocalFriendCodeSeed will be removed from Azahar.</li><li>Your friend list will reset and you will be logged out of your NNID/PNID account.</li><li>System files and eshop titles obtained through Azahar will become inaccessible until the same console is linked again using the setup tool (save data will not be lost).</li></ul><br>Continue?]]></string>
+    <string name="download_system_files">Download System Files</string>
     <string name="setup_system_files_o3ds">Old 3DS Setup</string>
     <string name="setup_system_files_n3ds">New 3DS Setup</string>
     <string name="setup_system_files_possible">Setup is possible.</string>
@@ -206,9 +216,25 @@
     <string name="setup_system_files_enter_address">Enter Artic Setup Tool address</string>
     <string name="setup_system_files_preparing">Preparing setup, please wait...</string>
     <string name="boot_home_menu">Boot the HOME Menu</string>
+    <string name="system_type">System Type</string>
+    <string name="download">Download</string>
+    <string name="keys_missing">Azahar is missing keys to download system files.</string>
+    <string name="how_to_get_keys"><![CDATA[<a href="https://web.archive.org/web/20240304203412/https://citra-emu.org/wiki/aes-keys/">How to get keys?</a>]]></string>
     <string name="show_home_apps">Show HOME menu apps in Applications list</string>
     <string name="run_system_setup">Run System Setup when the HOME Menu is launched</string>
+    <string name="system_type_minimal">Minimal</string>
+    <string name="system_type_old_3ds">Old 3DS</string>
+    <string name="system_type_new_3ds">New 3DS</string>
+    <string name="downloading_files">Downloading Files…</string>
+    <string name="downloading_files_description">Please do not close the app.</string>
+    <string name="download_failed">Download Failed</string>
+    <string name="download_failed_description">Please make sure you are connected to the internet and try again.</string>
+    <string name="download_success">Download Complete!</string>
+    <string name="download_cancelled">Download Cancelled</string>
+    <string name="download_cancelled_description">Please restart the download to prevent issues with having incomplete system files.</string>
     <string name="home_menu">HOME Menu</string>
+    <string name="home_menu_warning">System Files Warning</string>
+    <string name="home_menu_warning_description">Due to how slow Android\'s storage access framework is for accessing Azahar\'s files, downloading multiple versions of system files can dramatically slow down loading for applications, save states, and the Applications list. Only download the files that you require to avoid any issues with loading speeds.</string>
 
     <!-- Generic buttons (Shared with lots of stuff) -->
     <string name="generic_buttons">Buttons</string>
@@ -322,14 +348,6 @@
     <string name="internal_resolution_setting_8x">8x Native (3200x1920)</string>
     <string name="internal_resolution_setting_9x">9x Native (3600x2160)</string>
     <string name="internal_resolution_setting_10x">10x Native (4000x2400)</string>
-    <string name="internal_resolution_setting_11x">11x Native (4400x2640)</string>
-    <string name="internal_resolution_setting_12x">12x Native (4800x2880)</string>
-    <string name="internal_resolution_setting_13x">13x Native (5200x3120)</string>
-    <string name="internal_resolution_setting_14x">14x Native (5600x3360)</string>
-    <string name="internal_resolution_setting_15x">15x Native (6000x3600)</string>
-    <string name="internal_resolution_setting_16x">16x Native (6400x3840)</string>
-    <string name="internal_resolution_setting_17x">17x Native (6800x4080)</string>
-    <string name="internal_resolution_setting_18x">18x Native (7200x4320)</string>
     <string name="performance_warning">Turning off this setting will significantly reduce emulation performance! For the best experience, it is recommended that you leave this setting enabled.</string>
     <string name="debug_warning">Warning: Modifying these settings will slow emulation</string>
     <string name="stereoscopy">Stereoscopy</string>
@@ -485,7 +503,7 @@
     <string name="loader_error_encrypted_description"><![CDATA[Azahar does not support encrypted applications. Read our <a href="https://azahar-emu.org/blog/game-loading-changes/">blog post</a> for more information.]]></string>
     <string name="loader_error_file_not_found">ROM file does not exist</string>
     <string name="no_game_present">No bootable game present!</string>
-    <string name="invalid_rom">Invalid ROM</string>
+
     <string name="loader_error_generic">An error occurred while loading ROM: \"%s (%d)\"</string>
     <string name="core_error_success">Success</string>
     <string name="core_error_not_initialized">Not initialized</string>
@@ -502,7 +520,7 @@
     <string name="core_error_artic_disconnected">Artic Base disconnected</string>
     <string name="core_error_n3ds_application">File is New 3DS application</string>
     <string name="core_error_core_exception_raised">Core exception raised</string>
-    <string name="core_error_savestate_build_mismatch">Savestate version mismatch</string>
+    <string name="core_error_memory_exception_raised">Memory exception raised</string>
     <string name="core_error_shutdown_requested">Shutdown requested</string>
     <string name="core_error_unknown">Unknown error</string>
 
@@ -646,6 +664,14 @@
     <string name="system_archive_not_found">System Archive Not Found</string>
     <string name="system_archive_not_found_message">%s is missing. Please dump your system archives.\nContinuing emulation may result in crashes and bugs.</string>
     <string name="cia_file_not_found">Installation Failed. CIA file not found.</string>
+    <string name="zippass_file_not_found">Import Failed. ZipPass file not found.</string>
+    <string name="zippass_import_successful">Import successful.</string>
+    <string name="zippass_import_failed">Import failed.</string>
+    <string name="zippass_import_nothing">Nothing to import.</string>
+    <string name="zippass_export_successful">Export successful.</string>
+    <string name="zippass_export_failed">Export failed.</string>
+    <string name="zippass_export_nothing">Nothing to export.</string>
+    <string name="zippass_clear_success">Clear successful.</string>
     <string name="system_archive_general">A system archive</string>
     <string name="save_load_error">Save/Load Error</string>
     <string name="fatal_error">Fatal Error</string>
@@ -653,7 +679,6 @@
     <string name="unsupported_encrypted">Unsupported encrypted application</string>
     <string name="invalid_system_mode">Invalid system mode</string>
     <string name="invalid_system_mode_message">New 3DS exclusive applications cannot be loaded without enabling the New 3DS mode.</string>
-    <string name="savestate_build_mismatch_message"><![CDATA[Could not load savestate because it was created on a different Azahar version:<br/><b>Azahar %1$s</b>.<br/><br/>Please read our blog entry <a href="https://azahar-emu.org/blog/understanding-save-states/">understanding savestates</a> for more information.<br/><br/>To recover your progress, downgrade to <b>Azahar %1$s</b>, load this savestate and use the application\'s built-in save functionality.]]></string>
 
     <!-- Disk Shader Cache -->
     <string name="preparing_shaders">Preparing Shaders</string>
@@ -682,11 +707,9 @@
     <string name="create_shortcut">Create Shortcut</string>
     <string name="shortcut_name_empty">Shortcut name cannot be empty</string>
     <string name="shortcut_image_stretch_toggle">Stretch to fit image</string>
-    <string name="game_context_region">Region:</string>
     <string name="game_context_id">ID:</string>
     <string name="game_context_file">File:</string>
     <string name="game_context_type">Type:</string>
-    <string name="game_context_playtime">Playtime:</string>
     <string name="game_context_insert">Insert Cartridge</string>
     <string name="game_context_eject">Eject Cartridge</string>
 
@@ -731,6 +754,7 @@
     <string name="cheats_error_no_code_lines">Code can\'t be empty</string>
     <string name="cheats_error_on_line">Error on line %1$d</string>
 
+
     <!-- CIA Install -->
     <plurals name="cia_install_toast">
         <item quantity="one">Installing %d file. See notification for more details.</item>
@@ -750,7 +774,7 @@
     <string name="cia_install_error_unknown">An unknown error occurred while installing \"%s\".\n Please see the log for more details</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_formatted" translatable="false">%1$s %2$s</string>
+    <string name="memory_formatted">%1$s %2$s</string>
     <string name="memory_byte">Byte</string>
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
@@ -778,14 +802,14 @@
     <string name="use_black_backgrounds">Black Backgrounds</string>
     <string name="use_black_backgrounds_description">When using the dark theme, apply black backgrounds.</string>
 
-    <!-- Region codes -->
-    <string name="system_region_jpn" translatable="false">JPN</string>
-    <string name="system_region_usa" translatable="false">USA</string>
-    <string name="system_region_eur" translatable="false">EUR</string>
-    <string name="system_region_aus" translatable="false">AUS</string>
-    <string name="system_region_chn" translatable="false">CHN</string>
-    <string name="system_region_kor" translatable="false">KOR</string>
-    <string name="system_region_twn" translatable="false">TWN</string>
+    <!-- Region names -->
+    <string name="system_region_jpn">JPN</string>
+    <string name="system_region_usa">USA</string>
+    <string name="system_region_eur">EUR</string>
+    <string name="system_region_aus">AUS</string>
+    <string name="system_region_chn">CHN</string>
+    <string name="system_region_kor">KOR</string>
+    <string name="system_region_twn">TWN</string>
 
     <!-- Language names -->
     <string name="language_japanese">Japanese (日本語)</string>
@@ -828,15 +852,15 @@
     <string name="reverse_interlaced">Reverse Interlaced</string>
 
     <!-- Graphics API names -->
-    <string name="opengles" translatable="false">OpenGLES</string>
-    <string name="vulkan" translatable="false">Vulkan</string>
+    <string name="opengles">OpenGLES</string>
+    <string name="vulkan">Vulkan</string>
 
     <!-- Texture filter names -->
-    <string name="anime4k" translatable="false">Anime4K</string>
-    <string name="bicubic" translatable="false">Bicubic</string>
-    <string name="scaleforce" translatable="false">ScaleForce</string>
-    <string name="xbrz" translatable="false">xBRZ</string>
-    <string name="mmpx" translatable="false">MMPX</string>
+    <string name="anime4k">Anime4K</string>
+    <string name="bicubic">Bicubic</string>
+    <string name="scaleforce">ScaleForce</string>
+    <string name="xbrz">xBRZ</string>
+    <string name="mmpx">MMPX</string>
 
     <!-- Texture Sampling names -->
     <string name="game_controlled">Game Controlled</string>
@@ -983,14 +1007,6 @@
     <string name="vatican_city">Vatican City</string>
     <string name="bermuda">Bermuda</string>
 
-    <!-- Regions (Japan, Australia, China and Taiwan are above) -->
-    <string name="north_america">North America</string>
-    <string name="europe">Europe</string>
-    <string name="korea">Korea</string>
-    <string name="region_free">Region free</string>
-    <string name="invalid_region">Invalid region</string>
-    <string name="region_get_error">ERROR PLEASE REPORT</string>
-
     <!-- Months -->
     <string name="january">January</string>
     <string name="february">February</string>
@@ -1019,21 +1035,6 @@
     <string name="emulation_occupied_quicksave_slot">Quicksave - %1$tF %1$tR</string>
     <string name="quickload_not_found">No Quicksave available.</string>
 
-    <!-- File Compression -->
-    <string name="compress">Compress</string>
-    <string name="compressing">Compressing…</string>
-    <string name="decompress">Decompress</string>
-    <string name="decompressing">Decompressing…</string>
-    <string name="compress_success">Compression completed successfully.</string>
-    <string name="compress_unsupported">Compression not supported for this file.</string>
-    <string name="compress_already">File is already compressed.</string>
-    <string name="compress_failed">Compression failed.</string>
-    <string name="decompress_success">Decompression completed successfully.</string>
-    <string name="decompress_unsupported">Decompression not supported for this file.</string>
-    <string name="decompress_not_compressed">File is not compressed.</string>
-    <string name="decompress_failed">Decompression failed.</string>
-    <string name="compress_decompress_installed_app">Already installed applications cannot be compressed or decompressed.</string>
-
   <!-- Multiplayer -->
     <string name="multiplayer">Multiplayer</string>
     <string name="multiplayer_description">Host your own game room or join an existing one to play with people</string>
@@ -1042,6 +1043,7 @@
     <string name="multiplayer_create_room">Create</string>
     <string name="multiplayer_join_room">Join</string>
     <string name="multiplayer_public_room">Browse Public Rooms</string>
+    <string name="multiplayer_wifi_direct">Wi-Fi Direct</string>
     <string name="multiplayer_username">Username</string>
     <string name="multiplayer_ip_address">IP Address</string>
     <string name="multiplayer_ip_port">Port</string>
@@ -1105,7 +1107,7 @@
     <string name="multiplayer_room_browser">Public Rooms</string>
     <string name="multiplayer_no_rooms_found">No public rooms found</string>
     <string name="multiplayer_password_required">Password Required</string>
-    <string name="multiplayer_player_count" translatable="false">: %1$d/%2$d</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
     <string name="multiplayer_game">Game</string>
     <string name="multiplayer_no_game_info">Any Game</string>
     <string name="multiplayer_password_protected">Password protected room</string>
@@ -1117,6 +1119,32 @@
     <string name="prefered_game_name">Preferred Game</string>
     <string name="multiplayer_no_game">No Games Found</string>
     <string name="no_preference">No Preference</string>
+    <string name="multiplayer_no_preferred_game">None</string>
+    <string name="multiplayer_prefered_game_name_invalid">You must choose a Preferred Application to host a room.</string>
+    <string name="multiplayer_default_room_name">%1$s\'s Room</string>
+    <string name="multiplayer_wifi_direct_searching">[ %1$s ]   Searching for peers…</string>
+    <string name="multiplayer_wifi_direct_connecting">[ %1$s ]   Connecting to %2$s…</string>
+    <string name="multiplayer_wifi_direct_setting_up_host">[ %1$s ]   Setting up room…</string>
+    <string name="multiplayer_wifi_direct_setting_up_client">[ %1$s ]   Joining room…</string>
+    <string name="multiplayer_wifi_direct_error">Wi-Fi Direct connection failed</string>
+    <string name="multiplayer_wifi_direct_not_supported">Wi-Fi Direct is not supported on this device</string>
+    <string name="multiplayer_wifi_direct_permission_needed">Wi-Fi permission required. Please grant it and try again.</string>
+    <string name="multiplayer_wifi_direct_select_peer">[ %1$s ]   Select a device to connect</string>
+
+    <!-- File Compression -->
+    <string name="compress">Compress</string>
+    <string name="compressing">Compressing…</string>
+    <string name="decompress">Decompress</string>
+    <string name="decompressing">Decompressing…</string>
+    <string name="compress_success">Compression completed successfully.</string>
+    <string name="compress_unsupported">Compression not supported for this file.</string>
+    <string name="compress_already">File is already compressed.</string>
+    <string name="compress_failed">Compression failed.</string>
+    <string name="decompress_success">Decompression completed successfully.</string>
+    <string name="decompress_unsupported">Decompression not supported for this file.</string>
+    <string name="decompress_not_compressed">File is not compressed.</string>
+    <string name="decompress_failed">Decompression failed.</string>
+    <string name="compress_decompress_installed_app">Already installed applications cannot be compressed or decompressed.</string>
 
     <!-- Update Checker -->
     <string name="stable_channel_update_link" translatable="false">https://azahar-emu.org/pages/download/</string>
