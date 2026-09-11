@@ -1321,13 +1321,13 @@ class EmulationFragment :
 
     private fun showToggleControlsDialog() {
         val editor = preferences.edit()
-        val enabledButtons = BooleanArray(17)
+        val enabledButtons = BooleanArray(21)
         enabledButtons.forEachIndexed { i: Int, _: Boolean ->
             // Buttons that are disabled by default
             var defaultValue = true
             when (i) {
                 // TODO: Remove these magic numbers
-                6, 7, 12, 13, 14, 15, 16 -> defaultValue = false
+                6, 7, 12, 13, 14, 15, 16, 17, 18, 19, 20 -> defaultValue = false
             }
             enabledButtons[i] = preferences.getBoolean("buttonToggle$i", defaultValue)
         }
@@ -1534,10 +1534,10 @@ class EmulationFragment :
 
         val editor = preferences.edit()
         // TODO: This code sucks balls. We need to do this differently. -OS
-        for (i in 0 until 17) {
+        for (i in 0 until 21) {
             var defaultValue = true
             when (i) {
-                6, 7, 12, 13, 14, 15, 16 -> defaultValue = false
+                6, 7, 12, 13, 14, 15, 16, 17, 18, 19, 20 -> defaultValue = false
             }
             editor.putBoolean("buttonToggle$i", defaultValue)
         }
