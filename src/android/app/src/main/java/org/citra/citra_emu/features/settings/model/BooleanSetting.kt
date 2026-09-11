@@ -114,7 +114,6 @@ enum class BooleanSetting(
         Settings.SECTION_CONTROLS,
         false
     ),
-    COMBO_USE_MODIFIER(SettingKeys.combo_use_modifier(), Settings.SECTION_CONTROLS, true),
     UPRIGHT_SCREEN(SettingKeys.upright_screen(), Settings.SECTION_LAYOUT, false),
     COMPRESS_INSTALLED_CIA_CONTENT(
         SettingKeys.compress_cia_installs(),

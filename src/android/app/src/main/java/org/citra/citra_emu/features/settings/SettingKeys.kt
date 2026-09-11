@@ -152,5 +152,4 @@ object SettingKeys {
     external fun combo_button_buttons_3(): String
     external fun combo_button_buttons_4(): String
     external fun combo_button_buttons_5(): String
-    external fun combo_use_modifier(): String
 }

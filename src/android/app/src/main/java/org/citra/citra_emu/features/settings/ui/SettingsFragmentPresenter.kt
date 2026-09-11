@@ -972,15 +972,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
 
-            add(
-                SwitchSetting(
-                    BooleanSetting.COMBO_USE_MODIFIER,
-                    R.string.combo_use_modifier,
-                    R.string.combo_use_modifier_description,
-                    BooleanSetting.COMBO_USE_MODIFIER.key,
-                    BooleanSetting.COMBO_USE_MODIFIER.defaultValue
-                )
-            )
         }
     }
 

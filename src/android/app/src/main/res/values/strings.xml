@@ -199,8 +199,6 @@
     <string name="combo_button_settings_3">Configure Combo Button 3</string>
     <string name="combo_button_settings_4">Configure Combo Button 4</string>
     <string name="combo_button_settings_5">Configure Combo Button 5</string>
-    <string name="combo_use_modifier">Use Combo Modifier</string>
-    <string name="combo_use_modifier_description">When enabled, hold the matching Combo Modifier to fire a Combo Button. When disabled, Combo Buttons fire immediately when pressed, without needing a modifier held.</string>
 
     <!-- System files strings -->
     <string name="setup_system_files">System Files</string>

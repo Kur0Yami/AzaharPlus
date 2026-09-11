@@ -12,7 +12,6 @@ import org.citra.citra_emu.CitraApplication
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
 import org.citra.citra_emu.display.ScreenAdjustmentUtil
-import org.citra.citra_emu.features.settings.model.BooleanSetting
 import org.citra.citra_emu.features.settings.model.Settings
 import org.citra.citra_emu.features.settings.model.view.InputBindingSetting
 import org.citra.citra_emu.utils.ComboHelper
@@ -32,15 +31,19 @@ class HotkeyUtility(
     private data class ComboSlot(
         val triggerButton: Int,
         val modifierButton: Int,
+        val modifierKey: String,
         val slotNumber: Int
     )
 
+    // Whether a slot requires holding its modifier is decided automatically by whether
+    // that modifier has a binding at all: bind it -> "hold to fire" behavior; leave it
+    // unbound -> the trigger fires standalone, immediately, on its own.
     private val comboSlots = listOf(
-        ComboSlot(Hotkey.COMBO_BUTTON.button, Hotkey.COMBO_MODIFIER.button, 1),
-        ComboSlot(Hotkey.COMBO_BUTTON_2.button, Hotkey.COMBO_MODIFIER_2.button, 2),
-        ComboSlot(Hotkey.COMBO_BUTTON_3.button, Hotkey.COMBO_MODIFIER_3.button, 3),
-        ComboSlot(Hotkey.COMBO_BUTTON_4.button, Hotkey.COMBO_MODIFIER_4.button, 4),
-        ComboSlot(Hotkey.COMBO_BUTTON_5.button, Hotkey.COMBO_MODIFIER_5.button, 5)
+        ComboSlot(Hotkey.COMBO_BUTTON.button, Hotkey.COMBO_MODIFIER.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER, 1),
+        ComboSlot(Hotkey.COMBO_BUTTON_2.button, Hotkey.COMBO_MODIFIER_2.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_2, 2),
+        ComboSlot(Hotkey.COMBO_BUTTON_3.button, Hotkey.COMBO_MODIFIER_3.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_3, 3),
+        ComboSlot(Hotkey.COMBO_BUTTON_4.button, Hotkey.COMBO_MODIFIER_4.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_4, 4),
+        ComboSlot(Hotkey.COMBO_BUTTON_5.button, Hotkey.COMBO_MODIFIER_5.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_5, 5)
     )
     private val comboTriggerButtons = comboSlots.map { it.triggerButton }.toSet()
 
@@ -60,10 +63,8 @@ class HotkeyUtility(
     fun handleKeyPress(keyEvent: KeyEvent): Boolean {
         var handled = false
         val buttonSet = InputBindingSetting.getButtonSet(keyEvent)
-        val enableButton =
-            PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
-                .getString(Settings.HOTKEY_ENABLE, "")
-        val comboUseModifier = BooleanSetting.COMBO_USE_MODIFIER.boolean
+        val prefs = PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
+        val enableButton = prefs.getString(Settings.HOTKEY_ENABLE, "")
         val thisKeyIsEnableButton = buttonSet.contains(Hotkey.ENABLE.button)
         hotkeyIsEnabled = hotkeyIsEnabled || enableButton == "" || thisKeyIsEnableButton
 
@@ -78,9 +79,12 @@ class HotkeyUtility(
         // special: they only fire while their own modifier is currently held, so the same
         // physical key can keep working normally when the modifier isn't held.
         val firingHotkeys = buttonSet.filter { hotkeyButtons.contains(it) }.filter { btn ->
-            if (btn in comboTriggerButtons) {
-                // Standalone mode: trigger fires immediately, no modifier hold required.
-                !comboUseModifier || comboModifierHeld[btn] == true
+            val slot = comboSlots.find { it.triggerButton == btn }
+            if (slot != null) {
+                // Standalone: this slot's modifier has no binding, so the trigger fires
+                // immediately on its own. Otherwise it only fires while held.
+                val modifierIsBound = !prefs.getString(slot.modifierKey, "").isNullOrEmpty()
+                !modifierIsBound || comboModifierHeld[btn] == true
             } else {
                 true
             }
