@@ -63,9 +63,7 @@ class HotkeyUtility(
         val enableButton =
             PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
                 .getString(Settings.HOTKEY_ENABLE, "")
-        val comboUseModifier =
-            PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
-                .getBoolean(BooleanSetting.COMBO_USE_MODIFIER.key, BooleanSetting.COMBO_USE_MODIFIER.defaultValue)
+        val comboUseModifier = BooleanSetting.COMBO_USE_MODIFIER.boolean
         val thisKeyIsEnableButton = buttonSet.contains(Hotkey.ENABLE.button)
         hotkeyIsEnabled = hotkeyIsEnabled || enableButton == "" || thisKeyIsEnableButton
 
