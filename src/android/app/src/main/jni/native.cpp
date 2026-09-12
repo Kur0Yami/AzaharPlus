@@ -493,6 +493,32 @@ void Java_org_citra_citra_1emu_NativeLibrary_swapScreens([[maybe_unused]] JNIEnv
     Camera::NDK::g_rotation = rotation;
 }
 
+// Returns the current top/bottom screen render rects (in surface pixel coordinates) as
+// [topLeft, topTop, topRight, topBottom, bottomLeft, bottomTop, bottomRight, bottomBottom],
+// or null if there's no active window yet (e.g. emulation hasn't started). A screen that is
+// currently disabled comes back as a zero-size rect (all four values equal) rather than being
+// omitted, so callers can always index into a fixed-size 8-element array.
+jintArray Java_org_citra_citra_1emu_NativeLibrary_getScreenLayout([[maybe_unused]] JNIEnv* env,
+                                                                   [[maybe_unused]] jobject obj) {
+    if (!window) {
+        return nullptr;
+    }
+    const auto& layout = window->GetFramebufferLayout();
+    const jint values[8] = {
+        static_cast<jint>(layout.top_screen_enabled ? layout.top_screen.left : 0),
+        static_cast<jint>(layout.top_screen_enabled ? layout.top_screen.top : 0),
+        static_cast<jint>(layout.top_screen_enabled ? layout.top_screen.right : 0),
+        static_cast<jint>(layout.top_screen_enabled ? layout.top_screen.bottom : 0),
+        static_cast<jint>(layout.bottom_screen_enabled ? layout.bottom_screen.left : 0),
+        static_cast<jint>(layout.bottom_screen_enabled ? layout.bottom_screen.top : 0),
+        static_cast<jint>(layout.bottom_screen_enabled ? layout.bottom_screen.right : 0),
+        static_cast<jint>(layout.bottom_screen_enabled ? layout.bottom_screen.bottom : 0),
+    };
+    jintArray result = env->NewIntArray(8);
+    env->SetIntArrayRegion(result, 0, 8, values);
+    return result;
+}
+
 jboolean Java_org_citra_citra_1emu_NativeLibrary_areKeysAvailable([[maybe_unused]] JNIEnv* env,
                                                                   [[maybe_unused]] jobject obj) {
     HW::AES::InitKeys();
