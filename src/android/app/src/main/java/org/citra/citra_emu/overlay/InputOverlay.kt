@@ -64,6 +64,10 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
         textAlign = Paint.Align.CENTER
         setShadowLayer(4f, 0f, 1f, Color.BLACK)
     }
+
+    // Optional custom background from the active theme (bg_landscape.png / bg_portrait.png).
+    // Null means no theme background is provided -- nothing extra gets drawn in that case.
+    private var themeBackground: Bitmap? = null
     private var isInEditMode = false
     private var buttonBeingConfigured: InputOverlayDrawableButton? = null
     private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
@@ -96,6 +100,9 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+        themeBackground?.let {
+            canvas.drawBitmap(it, 0f, 0f, null)
+        }
         overlayButtons.forEach { it.draw(canvas) }
         overlayDpads.forEach { it.draw(canvas) }
         overlayJoysticks.forEach { it.draw(canvas) }
@@ -715,7 +722,24 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
         if (EmulationMenuSettings.showOverlay) {
             addOverlayControls(orientation)
         }
+        loadThemeBackground(orientation)
         invalidate()
+    }
+
+    // Loads the theme's background for the current orientation, scaled to fill this view.
+    // Leaves themeBackground null (nothing drawn) if the theme doesn't provide one.
+    private fun loadThemeBackground(orientation: String) {
+        val name = if (orientation == "-Portrait") {
+            OverlayTheme.Names.BG_PORTRAIT
+        } else {
+            OverlayTheme.Names.BG_LANDSCAPE
+        }
+        val raw = OverlayTheme.loadBitmap(name)
+        themeBackground = if (raw != null && width > 0 && height > 0) {
+            Bitmap.createScaledBitmap(raw, width, height, true)
+        } else {
+            null
+        }
     }
 
     private fun saveControlPosition(sharedPrefsId: Int, x: Int, y: Int, orientation: String) {
@@ -1158,7 +1182,19 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
          * @param scale         The scale factor for the bitmap.
          * @return The scaled [Bitmap]
          */
-        private fun getBitmap(context: Context, drawableId: Int, scale: Float): Bitmap {
+        private fun getBitmap(
+            context: Context,
+            drawableId: Int,
+            scale: Float,
+            themeName: String? = null
+        ): Bitmap {
+            if (themeName != null) {
+                val themed = OverlayTheme.loadBitmap(themeName)
+                if (themed != null) {
+                    return resizeBitmap(context, themed, scale)
+                }
+            }
+
             try {
                 val bitmap = BitmapFactory.decodeResource(context.resources, drawableId)
                 return resizeBitmap(context, bitmap, scale)
@@ -1235,6 +1271,33 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
          * @param buttonId     Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
          * @return An [InputOverlayDrawableButton] with the correct drawing bounds set.
          */
+        // Maps a button/hotkey id to the clean, unambiguous theme file base name a custom
+        // skin should use for it (see OverlayTheme.Names). Returns null for ids that aren't
+        // themeable (falls back to the built-in drawable in that case).
+        private fun themeNameForButtonId(buttonId: Int): String? = when (buttonId) {
+            NativeLibrary.ButtonType.BUTTON_A -> OverlayTheme.Names.A
+            NativeLibrary.ButtonType.BUTTON_B -> OverlayTheme.Names.B
+            NativeLibrary.ButtonType.BUTTON_X -> OverlayTheme.Names.X
+            NativeLibrary.ButtonType.BUTTON_Y -> OverlayTheme.Names.Y
+            NativeLibrary.ButtonType.TRIGGER_L -> OverlayTheme.Names.L
+            NativeLibrary.ButtonType.TRIGGER_R -> OverlayTheme.Names.R
+            NativeLibrary.ButtonType.BUTTON_ZL -> OverlayTheme.Names.ZL
+            NativeLibrary.ButtonType.BUTTON_ZR -> OverlayTheme.Names.ZR
+            NativeLibrary.ButtonType.BUTTON_START -> OverlayTheme.Names.START
+            NativeLibrary.ButtonType.BUTTON_SELECT -> OverlayTheme.Names.SELECT
+            NativeLibrary.ButtonType.BUTTON_HOME -> OverlayTheme.Names.HOME
+            NativeLibrary.ButtonType.BUTTON_SWAP -> OverlayTheme.Names.SWAP_SCREEN
+            NativeLibrary.ButtonType.BUTTON_TURBO -> OverlayTheme.Names.TURBO
+            Hotkey.COMBO_BUTTON.button -> OverlayTheme.Names.COMBO_1
+            Hotkey.COMBO_BUTTON_2.button -> OverlayTheme.Names.COMBO_2
+            Hotkey.COMBO_BUTTON_3.button -> OverlayTheme.Names.COMBO_3
+            Hotkey.COMBO_BUTTON_4.button -> OverlayTheme.Names.COMBO_4
+            Hotkey.COMBO_BUTTON_5.button -> OverlayTheme.Names.COMBO_5
+            else -> null
+        }
+
+        private fun pressedThemeName(name: String?): String? = name?.plus("_pressed")
+
         private fun initializeOverlayButton(
             context: Context,
             defaultResId: Int,
@@ -1270,8 +1333,10 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             val opacity: Int = preferences.getInt("controlOpacity", 50) * 255 / 100
 
             // Initialize the InputOverlayDrawableButton.
-            val defaultStateBitmap = getBitmap(context, defaultResId, scale)
-            val pressedStateBitmap = getBitmap(context, pressedResId, scale)
+            val themeName = themeNameForButtonId(buttonId)
+            val defaultStateBitmap = getBitmap(context, defaultResId, scale, themeName)
+            val pressedStateBitmap =
+                getBitmap(context, pressedResId, scale, pressedThemeName(themeName))
             val overlayDrawable =
                 InputOverlayDrawableButton(
                     res,
@@ -1343,10 +1408,19 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             val opacity: Int = preferences.getInt("controlOpacity", 50) * 255 / 100
 
             // Initialize the InputOverlayDrawableDpad.
-            val defaultStateBitmap = getBitmap(context, defaultResId, scale)
-            val pressedOneDirectionStateBitmap = getBitmap(context, pressedOneDirectionResId, scale)
-            val pressedTwoDirectionsStateBitmap =
-                getBitmap(context, pressedTwoDirectionsResId, scale)
+            val defaultStateBitmap = getBitmap(context, defaultResId, scale, OverlayTheme.Names.DPAD)
+            val pressedOneDirectionStateBitmap = getBitmap(
+                context,
+                pressedOneDirectionResId,
+                scale,
+                OverlayTheme.Names.DPAD_PRESSED_ONE
+            )
+            val pressedTwoDirectionsStateBitmap = getBitmap(
+                context,
+                pressedTwoDirectionsResId,
+                scale,
+                OverlayTheme.Names.DPAD_PRESSED_TWO
+            )
             val overlayDrawable = InputOverlayDrawableDpad(
                 res,
                 defaultStateBitmap,
@@ -1407,9 +1481,16 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             val opacity: Int = preferences.getInt("controlOpacity", 50) * 255 / 100
 
             // Initialize the InputOverlayDrawableJoystick.
-            val bitmapOuter = getBitmap(context, resOuter, scale)
-            val bitmapInnerDefault = getBitmap(context, defaultResInner, scale)
-            val bitmapInnerPressed = getBitmap(context, pressedResInner, scale)
+            val isCStick = joystick == NativeLibrary.ButtonType.STICK_C
+            val outerThemeName =
+                if (isCStick) OverlayTheme.Names.C_STICK_RANGE else OverlayTheme.Names.JOYSTICK_RANGE
+            val innerThemeName =
+                if (isCStick) OverlayTheme.Names.C_STICK else OverlayTheme.Names.JOYSTICK
+            val innerPressedThemeName =
+                if (isCStick) OverlayTheme.Names.C_STICK_PRESSED else OverlayTheme.Names.JOYSTICK_PRESSED
+            val bitmapOuter = getBitmap(context, resOuter, scale, outerThemeName)
+            val bitmapInnerDefault = getBitmap(context, defaultResInner, scale, innerThemeName)
+            val bitmapInnerPressed = getBitmap(context, pressedResInner, scale, innerPressedThemeName)
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
