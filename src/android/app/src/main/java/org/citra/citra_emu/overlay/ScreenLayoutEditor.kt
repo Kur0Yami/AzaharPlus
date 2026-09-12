@@ -14,10 +14,12 @@ import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.View
+import org.citra.citra_emu.CitraApplication
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.features.settings.model.IntSetting
 import org.citra.citra_emu.features.settings.model.Settings
 import org.citra.citra_emu.features.settings.utils.SettingsFile
+import org.ini4j.Wini
 
 /**
  * Live drag-to-resize editor for the "Custom Layout" top/bottom screen rectangles, in the
@@ -311,17 +313,19 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
     }
 
     private fun applyToSettings(screen: ScreenRect) {
-        val s = settings ?: return
+        if (settings == null) return
         // Convert this view's local drag pixels back to real display pixels -- the space
         // the Custom Layout settings and the native renderer actually use.
         screen.xSetting.int = (screen.rect.left * scaleX).toInt()
         screen.ySetting.int = (screen.rect.top * scaleY).toInt()
         screen.widthSetting.int = (screen.rect.width() * scaleX).toInt()
         screen.heightSetting.int = (screen.rect.height() * scaleY).toInt()
-        s.saveSetting(screen.xSetting, SettingsFile.FILE_NAME_CONFIG)
-        s.saveSetting(screen.ySetting, SettingsFile.FILE_NAME_CONFIG)
-        s.saveSetting(screen.widthSetting, SettingsFile.FILE_NAME_CONFIG)
-        s.saveSetting(screen.heightSetting, SettingsFile.FILE_NAME_CONFIG)
+
+        // SettingsFile.saveFile(filename, setting) does a full read-modify-write pass over
+        // the whole config .ini per call -- calling it 4x per drag step (X/Y/Width/Height
+        // separately) is what made resizing feel heavy. Do all 4 in a single pass instead.
+        saveFourValuesInOnePass(screen)
+
         // reloadSettings() alone only re-reads the saved config into memory -- the renderer
         // needs an explicit poke to actually recompute and redraw the screens at their new
         // position/size right now, instead of only picking it up on the next app launch.
@@ -329,12 +333,41 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
         NativeLibrary.updateFramebuffer(NativeLibrary.isPortraitMode())
     }
 
+    private fun saveFourValuesInOnePass(screen: ScreenRect) {
+        try {
+            val ini = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_CONFIG)
+            val context = CitraApplication.appContext
+            val inputStream = context.contentResolver.openInputStream(ini.uri)
+            val writer = Wini(inputStream)
+            writer.put(screen.xSetting.section, screen.xSetting.key, screen.xSetting.valueAsString)
+            writer.put(screen.ySetting.section, screen.ySetting.key, screen.ySetting.valueAsString)
+            writer.put(
+                screen.widthSetting.section,
+                screen.widthSetting.key,
+                screen.widthSetting.valueAsString
+            )
+            writer.put(
+                screen.heightSetting.section,
+                screen.heightSetting.key,
+                screen.heightSetting.valueAsString
+            )
+            inputStream?.close()
+            val outputStream = context.contentResolver.openOutputStream(ini.uri, "wt")
+            writer.store(outputStream)
+            outputStream?.flush()
+            outputStream?.close()
+        } catch (_: Exception) {
+            // Best-effort: a dropped frame's worth of drag position isn't worth surfacing an
+            // error over -- the next successful pass (or the final one on release) catches up.
+        }
+    }
+
     companion object {
         private const val MIN_SIZE_PX = 80f
 
-        // Each live apply does 4 full read-modify-write passes over the config .ini file
-        // (see SettingsFile.saveFile), which is expensive -- keep this comfortably low to
-        // avoid visible jank while still feeling responsive as the screen follows the drag.
-        private const val LIVE_APPLY_THROTTLE_MS = 200L
+        // Now a single batched read-modify-write pass per apply (see
+        // saveFourValuesInOnePass) instead of 4 separate ones, so this can run more often
+        // for a smoother, more MMJ-like feel without reintroducing the earlier jank.
+        private const val LIVE_APPLY_THROTTLE_MS = 60L
     }
 }
