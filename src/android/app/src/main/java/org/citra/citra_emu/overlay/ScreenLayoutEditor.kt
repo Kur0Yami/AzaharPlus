@@ -27,7 +27,10 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
 
     var settings: Settings? = null
 
-    var isInEditMode = false
+    // Named to avoid clashing with android.view.View's own final isInEditMode(), which is
+    // a completely unrelated IDE-preview-detection method with the exact same signature --
+    // reusing that name here causes an "accidental override" compile error.
+    var isLayoutEditModeActive = false
         set(value) {
             field = value
             visibility = if (value) VISIBLE else GONE
@@ -135,7 +138,7 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (!isInEditMode) return
+        if (!isLayoutEditModeActive) return
         topScreen?.let { drawScreenRect(canvas, it, topPaint) }
         bottomScreen?.let { drawScreenRect(canvas, it, bottomPaint) }
     }
@@ -159,7 +162,7 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!isInEditMode) return false
+        if (!isLayoutEditModeActive) return false
         val x = event.x
         val y = event.y
 
