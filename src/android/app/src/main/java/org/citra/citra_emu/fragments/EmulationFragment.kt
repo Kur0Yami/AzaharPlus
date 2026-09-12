@@ -240,9 +240,11 @@ class EmulationFragment :
         }
 
         binding.surfaceEmulation.holder.addCallback(this)
+        binding.screenLayoutEditor.settings = settings
         binding.doneControlConfig.setOnClickListener {
             binding.doneControlConfig.visibility = View.GONE
             binding.surfaceInputOverlay.setIsInEditMode(false)
+            binding.screenLayoutEditor.isInEditMode = false
         }
 
         // Show/hide the "Stats" overlay
@@ -1080,12 +1082,9 @@ class EmulationFragment :
                 }
 
                 R.id.menu_screen_layout_custom -> {
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.emulation_adjust_custom_layout,
-                        Toast.LENGTH_LONG
-                    ).show()
                     screenAdjustmentUtil.changeScreenOrientation(ScreenLayout.CUSTOM_LAYOUT.int)
+                    binding.doneControlConfig.visibility = View.VISIBLE
+                    binding.screenLayoutEditor.isInEditMode = true
                     true
                 }
 
@@ -1137,14 +1136,11 @@ class EmulationFragment :
                 }
 
                 R.id.menu_portrait_layout_custom -> {
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.emulation_adjust_custom_layout,
-                        Toast.LENGTH_LONG
-                    ).show()
                     screenAdjustmentUtil.changePortraitOrientation(
                         PortraitScreenLayout.CUSTOM_PORTRAIT_LAYOUT.int
                     )
+                    binding.doneControlConfig.visibility = View.VISIBLE
+                    binding.screenLayoutEditor.isInEditMode = true
                     true
                 }
 

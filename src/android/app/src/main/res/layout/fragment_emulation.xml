@@ -32,6 +32,17 @@
             android:focusableInTouchMode="true"
             android:visibility="invisible" />
 
+        <!-- Live drag-to-resize editor for Custom Layout (top/bottom screen rects) -->
+        <org.citra.citra_emu.overlay.ScreenLayoutEditor
+            android:id="@+id/screen_layout_editor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:defaultFocusHighlightEnabled="false"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:visibility="gone" />
+
         <Button
             android:id="@+id/done_control_config"
             style="@style/Widget.Material3.Button.ElevatedButton"
