@@ -104,17 +104,27 @@ object OverlayTheme {
         cachedThemeDir = null
     }
 
+    // Tried in this order for every theme file lookup, so a pack can mix formats freely
+    // (e.g. png buttons alongside a jpg background) without the user having to convert
+    // anything.
+    private val SUPPORTED_EXTENSIONS = listOf("png", "jpg", "jpeg", "webp")
+
     /**
-     * Returns the decoded bitmap for [name] from the theme folder, or null if the theme
-     * folder, the file, or a valid image at that file doesn't exist.
+     * Returns the decoded bitmap for [name] from the theme folder, trying each of
+     * [SUPPORTED_EXTENSIONS] in turn, or null if the theme folder or no matching file
+     * with a valid image exists.
      */
     fun loadBitmap(name: String): Bitmap? {
         val dir = themeDir() ?: return null
-        val file = dir.findFile("$name.png") ?: return null
-        return try {
-            file.inputStream().use { BitmapFactory.decodeStream(it) }
-        } catch (_: Exception) {
-            null
+        for (ext in SUPPORTED_EXTENSIONS) {
+            val file = dir.findFile("$name.$ext") ?: continue
+            val bitmap = try {
+                file.inputStream().use { BitmapFactory.decodeStream(it) }
+            } catch (_: Exception) {
+                null
+            }
+            if (bitmap != null) return bitmap
         }
+        return null
     }
 }
