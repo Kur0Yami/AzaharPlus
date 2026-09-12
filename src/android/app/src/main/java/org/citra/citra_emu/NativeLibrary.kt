@@ -224,6 +224,14 @@ object NativeLibrary {
      */
     external fun swapScreens(swapScreens: Boolean, rotation: Int)
 
+    /**
+     * Returns the current top/bottom screen render rects, in surface pixel coordinates, as
+     * [topLeft, topTop, topRight, topBottom, bottomLeft, bottomTop, bottomRight, bottomBottom],
+     * or null if there's no active emulation window yet. A disabled screen comes back as a
+     * zero-size rect rather than being omitted.
+     */
+    external fun getScreenLayout(): IntArray?
+
     external fun initializeGpuDriver(
         hookLibDir: String?,
         customDriverDir: String?,
