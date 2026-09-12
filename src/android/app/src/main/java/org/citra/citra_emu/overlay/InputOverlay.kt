@@ -100,8 +100,26 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        themeBackground?.let {
-            canvas.drawBitmap(it, 0f, 0f, null)
+        themeBackground?.let { bg ->
+            // The theme background is scaled to the full view, but this overlay sits on top of
+            // the actual game render surface -- drawing the background as-is would paint over
+            // the emulated screens too. Cut those areas out first so the background only fills
+            // the border/letterbox space around them (screens is null before/without an active
+            // emulation window, in which case there's nothing to cut out yet).
+            val screens = NativeLibrary.getScreenLayout()
+            if (screens != null && screens.size == 8) {
+                canvas.save()
+                if (screens[2] > screens[0] && screens[3] > screens[1]) {
+                    canvas.clipOutRect(screens[0], screens[1], screens[2], screens[3])
+                }
+                if (screens[6] > screens[4] && screens[7] > screens[5]) {
+                    canvas.clipOutRect(screens[4], screens[5], screens[6], screens[7])
+                }
+                canvas.drawBitmap(bg, 0f, 0f, null)
+                canvas.restore()
+            } else {
+                canvas.drawBitmap(bg, 0f, 0f, null)
+            }
         }
         overlayButtons.forEach { it.draw(canvas) }
         overlayDpads.forEach { it.draw(canvas) }
@@ -726,19 +744,44 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
         invalidate()
     }
 
+    // (name, width, height) that themeBackground currently reflects, so redundant calls (e.g.
+    // control scale/opacity changes that also route through refreshControls()) don't re-decode
+    // and re-scale the same bitmap every time.
+    private var themeBackgroundKey: Triple<String, Int, Int>? = null
+
     // Loads the theme's background for the current orientation, scaled to fill this view.
-    // Leaves themeBackground null (nothing drawn) if the theme doesn't provide one.
+    // Leaves themeBackground null (nothing drawn) if the theme doesn't provide one. width/height
+    // are 0 the first time this runs (called from init(), before layout) -- onSizeChanged()
+    // below re-triggers this once real dimensions are known so the background isn't stuck
+    // missing until some unrelated setting change happens to call refreshControls() again.
     private fun loadThemeBackground(orientation: String) {
         val name = if (orientation == "-Portrait") {
             OverlayTheme.Names.BG_PORTRAIT
         } else {
             OverlayTheme.Names.BG_LANDSCAPE
         }
+        val key = Triple(name, width, height)
+        if (themeBackgroundKey == key) return
+        themeBackgroundKey = key
         val raw = OverlayTheme.loadBitmap(name)
         themeBackground = if (raw != null && width > 0 && height > 0) {
             Bitmap.createScaledBitmap(raw, width, height, true)
         } else {
             null
+        }
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w > 0 && h > 0) {
+            val orientation =
+                if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    "-Portrait"
+                } else {
+                    ""
+                }
+            loadThemeBackground(orientation)
+            invalidate()
         }
     }
 
