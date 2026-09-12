@@ -4,12 +4,14 @@
 
 package org.citra.citra_emu.overlay
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.View
 import org.citra.citra_emu.NativeLibrary
@@ -64,6 +66,14 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
     private var dragStartRect = RectF()
     private var lastLiveApplyTime = 0L
 
+    // Real display pixels per this View's own local pixel. Drag math happens entirely in
+    // View-local pixels (matching MotionEvent naturally); this scale only applies at the
+    // boundary when reading from / writing to the native layout, since the Custom Layout
+    // settings are calibrated against the full physical display resolution (getRealMetrics),
+    // which can differ from this View's measured size (e.g. system bar/inset exclusion).
+    private var scaleX = 1f
+    private var scaleY = 1f
+
     private val handleRadiusPx = resources.displayMetrics.density * 16f
     private val strokeWidthPx = resources.displayMetrics.density * 2f
 
@@ -98,21 +108,47 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
         visibility = GONE
     }
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        updateScale()
+        // The View's real size (and therefore the scale) is only known once this fires, so
+        // if edit mode was already turned on before layout finished, redo the native read
+        // now that rects can actually be converted to view-local pixels correctly.
+        if (isLayoutEditModeActive) refreshFromNative()
+    }
+
+    private fun updateScale() {
+        if (width <= 0 || height <= 0) return
+        val dm = DisplayMetrics()
+        (context as? Activity)?.windowManager?.defaultDisplay?.getRealMetrics(dm)
+        if (dm.widthPixels <= 0 || dm.heightPixels <= 0) return
+        // Match the real display's long/short axis to this view's long/short axis,
+        // regardless of how the display itself is currently rotated.
+        val viewIsLandscape = width >= height
+        val realLong = maxOf(dm.widthPixels, dm.heightPixels).toFloat()
+        val realShort = minOf(dm.widthPixels, dm.heightPixels).toFloat()
+        val (realW, realH) = if (viewIsLandscape) realLong to realShort else realShort to realLong
+        scaleX = realW / width.toFloat()
+        scaleY = realH / height.toFloat()
+    }
+
     // Reads the current on-screen top/bottom rects straight from the native renderer (the
-    // exact pixel positions the game is drawn at right now) and picks the Landscape or
-    // Portrait setting keys depending on which orientation is currently active, so dragging
-    // always edits whichever layout is actually in effect.
+    // exact pixel positions the game is drawn at right now, in real display pixels), converts
+    // them into this view's own local pixel space, and picks the Landscape or Portrait
+    // setting keys depending on which orientation is currently active, so dragging always
+    // edits whichever layout is actually in effect.
     fun refreshFromNative() {
         val layout = NativeLibrary.getScreenLayout()
         if (layout == null || layout.size != 8) return
+        updateScale()
         val portrait = NativeLibrary.isPortraitMode()
 
         topScreen = ScreenRect(
             RectF(
-                layout[0].toFloat(),
-                layout[1].toFloat(),
-                layout[2].toFloat(),
-                layout[3].toFloat()
+                layout[0].toFloat() / scaleX,
+                layout[1].toFloat() / scaleY,
+                layout[2].toFloat() / scaleX,
+                layout[3].toFloat() / scaleY
             ),
             if (portrait) IntSetting.PORTRAIT_TOP_X else IntSetting.LANDSCAPE_TOP_X,
             if (portrait) IntSetting.PORTRAIT_TOP_Y else IntSetting.LANDSCAPE_TOP_Y,
@@ -122,10 +158,10 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
         )
         bottomScreen = ScreenRect(
             RectF(
-                layout[4].toFloat(),
-                layout[5].toFloat(),
-                layout[6].toFloat(),
-                layout[7].toFloat()
+                layout[4].toFloat() / scaleX,
+                layout[5].toFloat() / scaleY,
+                layout[6].toFloat() / scaleX,
+                layout[7].toFloat() / scaleY
             ),
             if (portrait) IntSetting.PORTRAIT_BOTTOM_X else IntSetting.LANDSCAPE_BOTTOM_X,
             if (portrait) IntSetting.PORTRAIT_BOTTOM_Y else IntSetting.LANDSCAPE_BOTTOM_Y,
@@ -276,19 +312,29 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
 
     private fun applyToSettings(screen: ScreenRect) {
         val s = settings ?: return
-        screen.xSetting.int = screen.rect.left.toInt()
-        screen.ySetting.int = screen.rect.top.toInt()
-        screen.widthSetting.int = screen.rect.width().toInt()
-        screen.heightSetting.int = screen.rect.height().toInt()
+        // Convert this view's local drag pixels back to real display pixels -- the space
+        // the Custom Layout settings and the native renderer actually use.
+        screen.xSetting.int = (screen.rect.left * scaleX).toInt()
+        screen.ySetting.int = (screen.rect.top * scaleY).toInt()
+        screen.widthSetting.int = (screen.rect.width() * scaleX).toInt()
+        screen.heightSetting.int = (screen.rect.height() * scaleY).toInt()
         s.saveSetting(screen.xSetting, SettingsFile.FILE_NAME_CONFIG)
         s.saveSetting(screen.ySetting, SettingsFile.FILE_NAME_CONFIG)
         s.saveSetting(screen.widthSetting, SettingsFile.FILE_NAME_CONFIG)
         s.saveSetting(screen.heightSetting, SettingsFile.FILE_NAME_CONFIG)
+        // reloadSettings() alone only re-reads the saved config into memory -- the renderer
+        // needs an explicit poke to actually recompute and redraw the screens at their new
+        // position/size right now, instead of only picking it up on the next app launch.
         NativeLibrary.reloadSettings()
+        NativeLibrary.updateFramebuffer(NativeLibrary.isPortraitMode())
     }
 
     companion object {
         private const val MIN_SIZE_PX = 80f
-        private const val LIVE_APPLY_THROTTLE_MS = 80L
+
+        // Each live apply does 4 full read-modify-write passes over the config .ini file
+        // (see SettingsFile.saveFile), which is expensive -- keep this comfortably low to
+        // avoid visible jank while still feeling responsive as the screen follows the drag.
+        private const val LIVE_APPLY_THROTTLE_MS = 200L
     }
 }
