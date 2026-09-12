@@ -102,6 +102,7 @@ object OverlayTheme {
     fun invalidateCache() {
         cacheAttempted = false
         cachedThemeDir = null
+        bitmapCache.clear()
     }
 
     // Tried in this order for every theme file lookup, so a pack can mix formats freely
@@ -109,22 +110,34 @@ object OverlayTheme {
     // anything.
     private val SUPPORTED_EXTENSIONS = listOf("png", "jpg", "jpeg", "webp")
 
+    // Caches decoded bitmaps by name (including misses, as null) so repeated calls -- e.g.
+    // InputOverlay.refreshControls() firing on every scale/opacity/toggle-controls change --
+    // don't re-read from SAF and re-decode the same file every time. This was previously
+    // uncached, which was heavy enough on the main thread to cause visible jank and, on slower
+    // storage, ANRs. Cleared together with the theme dir cache in invalidateCache().
+    private val bitmapCache = HashMap<String, Bitmap?>()
+
     /**
      * Returns the decoded bitmap for [name] from the theme folder, trying each of
      * [SUPPORTED_EXTENSIONS] in turn, or null if the theme folder or no matching file
-     * with a valid image exists.
+     * with a valid image exists. Decoded once per name and cached afterwards.
      */
     fun loadBitmap(name: String): Bitmap? {
-        val dir = themeDir() ?: return null
-        for (ext in SUPPORTED_EXTENSIONS) {
-            val file = dir.findFile("$name.$ext") ?: continue
-            val bitmap = try {
-                file.inputStream().use { BitmapFactory.decodeStream(it) }
-            } catch (_: Exception) {
-                null
+        if (bitmapCache.containsKey(name)) return bitmapCache[name]
+        val dir = themeDir()
+        var bitmap: Bitmap? = null
+        if (dir != null) {
+            for (ext in SUPPORTED_EXTENSIONS) {
+                val file = dir.findFile("$name.$ext") ?: continue
+                bitmap = try {
+                    file.inputStream().use { BitmapFactory.decodeStream(it) }
+                } catch (_: Exception) {
+                    null
+                }
+                if (bitmap != null) break
             }
-            if (bitmap != null) return bitmap
         }
-        return null
+        bitmapCache[name] = bitmap
+        return bitmap
     }
 }
