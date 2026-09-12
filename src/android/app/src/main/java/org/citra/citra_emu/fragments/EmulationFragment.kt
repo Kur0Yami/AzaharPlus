@@ -244,7 +244,7 @@ class EmulationFragment :
         binding.doneControlConfig.setOnClickListener {
             binding.doneControlConfig.visibility = View.GONE
             binding.surfaceInputOverlay.setIsInEditMode(false)
-            binding.screenLayoutEditor.isInEditMode = false
+            binding.screenLayoutEditor.isLayoutEditModeActive = false
         }
 
         // Show/hide the "Stats" overlay
@@ -1084,7 +1084,7 @@ class EmulationFragment :
                 R.id.menu_screen_layout_custom -> {
                     screenAdjustmentUtil.changeScreenOrientation(ScreenLayout.CUSTOM_LAYOUT.int)
                     binding.doneControlConfig.visibility = View.VISIBLE
-                    binding.screenLayoutEditor.isInEditMode = true
+                    binding.screenLayoutEditor.isLayoutEditModeActive = true
                     true
                 }
 
@@ -1140,7 +1140,7 @@ class EmulationFragment :
                         PortraitScreenLayout.CUSTOM_PORTRAIT_LAYOUT.int
                     )
                     binding.doneControlConfig.visibility = View.VISIBLE
-                    binding.screenLayoutEditor.isInEditMode = true
+                    binding.screenLayoutEditor.isLayoutEditModeActive = true
                     true
                 }
 
