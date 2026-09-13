@@ -225,6 +225,24 @@ object NativeLibrary {
     external fun swapScreens(swapScreens: Boolean, rotation: Int)
 
     /**
+     * Lightweight live-drag setter for the Custom Layout screen editor. Writes the layout
+     * values directly and refreshes the framebuffer layout only -- unlike [reloadSettings],
+     * this does not re-read the config file or re-apply every other setting, so it's safe
+     * to call on every touch-move frame while dragging. Does not persist to disk by itself.
+     */
+    external fun setCustomLayout(
+        isPortrait: Boolean,
+        topX: Int,
+        topY: Int,
+        topWidth: Int,
+        topHeight: Int,
+        bottomX: Int,
+        bottomY: Int,
+        bottomWidth: Int,
+        bottomHeight: Int
+    )
+
+    /**
      * Returns the current top/bottom screen render rects, in surface pixel coordinates, as
      * [topLeft, topTop, topRight, topBottom, bottomLeft, bottomTop, bottomRight, bottomBottom],
      * or null if there's no active emulation window yet. A disabled screen comes back as a
