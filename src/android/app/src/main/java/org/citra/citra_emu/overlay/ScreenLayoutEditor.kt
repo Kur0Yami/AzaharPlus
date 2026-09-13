@@ -43,6 +43,12 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
             } else {
                 activeScreen = null
                 activeHandle = null
+                // Belt-and-suspenders full sync on the way out: the per-drag live path only
+                // ever pokes the renderer for the screen actively being dragged, so if the
+                // session ends without a final touch-up on the *other* screen (or the very
+                // last live-apply got throttled/skipped), do one normal, non-time-critical
+                // save+reload+redraw pass for both screens so nothing is left stale.
+                finalizeSession()
             }
             invalidate()
         }
@@ -89,6 +95,21 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
         color = Color.parseColor("#81C784")
         style = Paint.Style.STROKE
         strokeWidth = strokeWidthPx
+        isAntiAlias = true
+    }
+
+    // Semi-transparent color fill over the region currently being edited, MMJ-style, so the
+    // exact screen boundary is obvious at a glance instead of just a thin outline.
+    private val topFillPaint = Paint().apply {
+        color = Color.parseColor("#4FC3F7")
+        alpha = 70
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+    private val bottomFillPaint = Paint().apply {
+        color = Color.parseColor("#81C784")
+        alpha = 70
+        style = Paint.Style.FILL
         isAntiAlias = true
     }
     private val handleFillPaint = Paint().apply {
@@ -177,11 +198,12 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (!isLayoutEditModeActive) return
-        topScreen?.let { drawScreenRect(canvas, it, topPaint) }
-        bottomScreen?.let { drawScreenRect(canvas, it, bottomPaint) }
+        topScreen?.let { drawScreenRect(canvas, it, topPaint, topFillPaint) }
+        bottomScreen?.let { drawScreenRect(canvas, it, bottomPaint, bottomFillPaint) }
     }
 
-    private fun drawScreenRect(canvas: Canvas, screen: ScreenRect, paint: Paint) {
+    private fun drawScreenRect(canvas: Canvas, screen: ScreenRect, paint: Paint, fillPaint: Paint) {
+        canvas.drawRect(screen.rect, fillPaint)
         canvas.drawRect(screen.rect, paint)
         canvas.drawText(
             screen.label,
@@ -348,6 +370,30 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
         screen.widthSetting.int = (screen.rect.width() * scaleX).toInt()
         screen.heightSetting.int = (screen.rect.height() * scaleY).toInt()
         saveFourValuesInOnePass(screen)
+    }
+
+    // Full, guaranteed-correct sync for both screens at once. Deliberately uses the heavier
+    // reloadSettings()/updateFramebuffer() path instead of the live in-memory setter -- this
+    // only runs once when leaving edit mode, so the extra cost doesn't matter, and it removes
+    // any doubt about whether the fast path fully applied before the editor closed.
+    private fun finalizeSession() {
+        val top = topScreen
+        val bottom = bottomScreen
+        if (settings == null || top == null || bottom == null) return
+
+        top.xSetting.int = (top.rect.left * scaleX).toInt()
+        top.ySetting.int = (top.rect.top * scaleY).toInt()
+        top.widthSetting.int = (top.rect.width() * scaleX).toInt()
+        top.heightSetting.int = (top.rect.height() * scaleY).toInt()
+        bottom.xSetting.int = (bottom.rect.left * scaleX).toInt()
+        bottom.ySetting.int = (bottom.rect.top * scaleY).toInt()
+        bottom.widthSetting.int = (bottom.rect.width() * scaleX).toInt()
+        bottom.heightSetting.int = (bottom.rect.height() * scaleY).toInt()
+
+        saveFourValuesInOnePass(top)
+        saveFourValuesInOnePass(bottom)
+        NativeLibrary.reloadSettings()
+        NativeLibrary.updateFramebuffer(NativeLibrary.isPortraitMode())
     }
 
     private fun saveFourValuesInOnePass(screen: ScreenRect) {
