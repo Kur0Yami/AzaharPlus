@@ -43,9 +43,28 @@ class HotkeyUtility(
         ComboSlot(Hotkey.COMBO_BUTTON_2.button, Hotkey.COMBO_MODIFIER_2.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_2, 2),
         ComboSlot(Hotkey.COMBO_BUTTON_3.button, Hotkey.COMBO_MODIFIER_3.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_3, 3),
         ComboSlot(Hotkey.COMBO_BUTTON_4.button, Hotkey.COMBO_MODIFIER_4.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_4, 4),
-        ComboSlot(Hotkey.COMBO_BUTTON_5.button, Hotkey.COMBO_MODIFIER_5.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_5, 5)
+        ComboSlot(Hotkey.COMBO_BUTTON_5.button, Hotkey.COMBO_MODIFIER_5.button, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_5, 5),
+        // Combo Chain reuses the same modifier-hold/standalone gating and release-matching
+        // as the 5 fixed slots, but which slot it actually fires is decided dynamically at
+        // press time (see handleHotkey) -- CHAIN_SLOT_MARKER is a placeholder, never used
+        // directly to fire a combo.
+        ComboSlot(
+            Hotkey.COMBO_CHAIN.button,
+            Hotkey.COMBO_CHAIN_MODIFIER.button,
+            Settings.HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER,
+            CHAIN_SLOT_MARKER
+        )
     )
     private val comboTriggerButtons = comboSlots.map { it.triggerButton }.toSet()
+
+    // Combo Chain runtime state: cycles through combo slots 1-5 (reusing their existing
+    // button lists) on each successive press, so a single trigger can step through a
+    // sequence like Guard (slot 1) -> Counter (slot 2) without needing a separate button
+    // per step. Leave the slots after the ones you use empty; firing an empty slot is a
+    // harmless no-op, which is what makes the chain "length" implicitly customizable.
+    private var chainNextIndex = 0
+    private var chainLastFireTime = 0L
+    private var chainFiredSlotNumber: Int? = null
 
     private val hotkeyButtons = Hotkey.entries.map { it.button }
     private var hotkeyIsEnabled = false
@@ -152,7 +171,17 @@ class HotkeyUtility(
             buttonSet.contains(it.triggerButton) && comboFiredForKeyId[it.triggerButton] == keyId
         }
         for (slot in firedSlotsThisKey) {
-            ComboHelper.comboActivate(NativeLibrary.ButtonState.RELEASED, slot.slotNumber)
+            val slotNumberToRelease = if (slot.slotNumber == CHAIN_SLOT_MARKER) {
+                chainFiredSlotNumber
+            } else {
+                slot.slotNumber
+            }
+            if (slotNumberToRelease != null) {
+                ComboHelper.comboActivate(NativeLibrary.ButtonState.RELEASED, slotNumberToRelease)
+            }
+            if (slot.slotNumber == CHAIN_SLOT_MARKER) {
+                chainFiredSlotNumber = null
+            }
             comboFiredForKeyId[slot.triggerButton] = null
             handled = true
         }
@@ -249,9 +278,26 @@ class HotkeyUtility(
                 ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, 5)
             }
 
+            Hotkey.COMBO_CHAIN.button -> {
+                val now = System.currentTimeMillis()
+                if (now - chainLastFireTime > CHAIN_IDLE_RESET_MS) {
+                    chainNextIndex = 0
+                }
+                chainLastFireTime = now
+                val slotNumber = chainNextIndex + 1
+                chainFiredSlotNumber = slotNumber
+                ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, slotNumber)
+                chainNextIndex = (chainNextIndex + 1) % 5
+            }
+
             else -> {}
         }
         hotkeyIsPressed = true
         return true
+    }
+
+    companion object {
+        private const val CHAIN_SLOT_MARKER = 0
+        private const val CHAIN_IDLE_RESET_MS = 2000L
     }
 }
