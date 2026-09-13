@@ -493,6 +493,41 @@ void Java_org_citra_citra_1emu_NativeLibrary_swapScreens([[maybe_unused]] JNIEnv
     Camera::NDK::g_rotation = rotation;
 }
 
+// Lightweight live-drag setter for the Custom Layout screen editor: writes the 8 layout
+// values straight into memory and pokes the renderer to recompute its framebuffer layout,
+// without going through Config{} + System::ApplySettings() (which reloads and reapplies
+// every other setting too and is far too heavy to call on every touch-move frame). The
+// caller is still responsible for persisting these values to the config file once (e.g. on
+// touch-up) via the normal settings path -- this call alone does not survive a restart.
+void Java_org_citra_citra_1emu_NativeLibrary_setCustomLayout(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj, jboolean is_portrait,
+    jint top_x, jint top_y, jint top_width, jint top_height, jint bottom_x, jint bottom_y,
+    jint bottom_width, jint bottom_height) {
+    if (is_portrait) {
+        Settings::values.custom_portrait_top_x = static_cast<u16>(top_x);
+        Settings::values.custom_portrait_top_y = static_cast<u16>(top_y);
+        Settings::values.custom_portrait_top_width = static_cast<u16>(top_width);
+        Settings::values.custom_portrait_top_height = static_cast<u16>(top_height);
+        Settings::values.custom_portrait_bottom_x = static_cast<u16>(bottom_x);
+        Settings::values.custom_portrait_bottom_y = static_cast<u16>(bottom_y);
+        Settings::values.custom_portrait_bottom_width = static_cast<u16>(bottom_width);
+        Settings::values.custom_portrait_bottom_height = static_cast<u16>(bottom_height);
+    } else {
+        Settings::values.custom_top_x = static_cast<u16>(top_x);
+        Settings::values.custom_top_y = static_cast<u16>(top_y);
+        Settings::values.custom_top_width = static_cast<u16>(top_width);
+        Settings::values.custom_top_height = static_cast<u16>(top_height);
+        Settings::values.custom_bottom_x = static_cast<u16>(bottom_x);
+        Settings::values.custom_bottom_y = static_cast<u16>(bottom_y);
+        Settings::values.custom_bottom_width = static_cast<u16>(bottom_width);
+        Settings::values.custom_bottom_height = static_cast<u16>(bottom_height);
+    }
+    auto& system = Core::System::GetInstance();
+    if (system.IsPoweredOn()) {
+        system.GPU().Renderer().UpdateCurrentFramebufferLayout(static_cast<bool>(is_portrait));
+    }
+}
+
 // Returns the current top/bottom screen render rects (in surface pixel coordinates) as
 // [topLeft, topTop, topRight, topBottom, bottomLeft, bottomTop, bottomRight, bottomBottom],
 // or null if there's no active window yet (e.g. emulation hasn't started). A screen that is
