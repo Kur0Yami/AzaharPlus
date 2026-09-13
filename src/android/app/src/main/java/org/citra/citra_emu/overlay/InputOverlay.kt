@@ -132,6 +132,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
     private fun drawComboBadges(canvas: Canvas) {
         overlayButtons.forEach { button ->
             val slot = comboOverlaySlots[button.id] ?: return@forEach
+            // Skip the badge once a theme supplies this exact slot its own distinct art --
+            // it no longer needs a number to tell it apart from the others. Falls back to
+            // the shared built-in icon (or another slot's theme file) still gets a badge,
+            // since those cases are exactly when the icons look identical.
+            val themeName = themeNameForButtonId(button.id)
+            if (themeName != null && OverlayTheme.loadBitmap(themeName) != null) return@forEach
             val bounds = button.bounds
             comboBadgePaint.textSize = bounds.height() * 0.4f
             canvas.drawText(
