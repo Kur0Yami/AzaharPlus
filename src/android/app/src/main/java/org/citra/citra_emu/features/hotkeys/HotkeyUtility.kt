@@ -53,6 +53,15 @@ class HotkeyUtility(
             Hotkey.COMBO_CHAIN_MODIFIER.button,
             Settings.HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER,
             CHAIN_SLOT_MARKER
+        ),
+        // A second, independent physical trigger for the exact same chain state as
+        // COMBO_CHAIN above -- lets a sequence be driven by different buttons per step
+        // (e.g. ZR fires step 1, then X fires step 2) instead of re-pressing one button.
+        ComboSlot(
+            Hotkey.COMBO_CHAIN_CONTINUE.button,
+            Hotkey.COMBO_CHAIN_CONTINUE_MODIFIER.button,
+            Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER,
+            CHAIN_SLOT_MARKER
         )
     )
     private val comboTriggerButtons = comboSlots.map { it.triggerButton }.toSet()
@@ -278,22 +287,26 @@ class HotkeyUtility(
                 ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, 5)
             }
 
-            Hotkey.COMBO_CHAIN.button -> {
-                val now = System.currentTimeMillis()
-                if (now - chainLastFireTime > CHAIN_IDLE_RESET_MS) {
-                    chainNextIndex = 0
-                }
-                chainLastFireTime = now
-                val slotNumber = chainNextIndex + 1
-                chainFiredSlotNumber = slotNumber
-                ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, slotNumber)
-                chainNextIndex = (chainNextIndex + 1) % 5
-            }
+            Hotkey.COMBO_CHAIN.button, Hotkey.COMBO_CHAIN_CONTINUE.button -> fireNextChainStep()
 
             else -> {}
         }
         hotkeyIsPressed = true
         return true
+    }
+
+    // Shared by both COMBO_CHAIN and COMBO_CHAIN_CONTINUE -- whichever physical button was
+    // actually pressed, this advances the same underlying sequence by one step.
+    private fun fireNextChainStep() {
+        val now = System.currentTimeMillis()
+        if (now - chainLastFireTime > CHAIN_IDLE_RESET_MS) {
+            chainNextIndex = 0
+        }
+        chainLastFireTime = now
+        val slotNumber = chainNextIndex + 1
+        chainFiredSlotNumber = slotNumber
+        ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, slotNumber)
+        chainNextIndex = (chainNextIndex + 1) % 5
     }
 
     companion object {

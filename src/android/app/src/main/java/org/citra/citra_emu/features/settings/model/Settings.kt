@@ -155,6 +155,9 @@ class Settings {
         const val HOTKEY_BUTTON_COMBO_MODIFIER_5 = "hotkey_button_combo_modifier_5"
         const val HOTKEY_BUTTON_COMBO_CHAIN = "hotkey_button_combo_chain"
         const val HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER = "hotkey_button_combo_chain_modifier"
+        const val HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE = "hotkey_button_combo_chain_continue"
+        const val HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER =
+            "hotkey_button_combo_chain_continue_modifier"
 
         val buttonKeys = listOf(
             KEY_BUTTON_A,
@@ -234,7 +237,9 @@ class Settings {
             HOTKEY_BUTTON_COMBO_5,
             HOTKEY_BUTTON_COMBO_MODIFIER_5,
             HOTKEY_BUTTON_COMBO_CHAIN,
-            HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER
+            HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER,
+            HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE,
+            HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER
         )
         val hotkeyTitles = listOf(
             R.string.controller_hotkey_enable_button,
@@ -256,7 +261,9 @@ class Settings {
             R.string.button_combo_5,
             R.string.button_combo_modifier_5,
             R.string.button_combo_chain,
-            R.string.button_combo_chain_modifier
+            R.string.button_combo_chain_modifier,
+            R.string.button_combo_chain_continue,
+            R.string.button_combo_chain_continue_modifier
         )
 
         // TODO: Move these in with the other setting keys in GenerateSettingKeys.cmake

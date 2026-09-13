@@ -139,6 +139,9 @@ class InputBindingSetting(val abstractSetting: AbstractSetting, titleId: Int) :
                 Settings.HOTKEY_BUTTON_COMBO_MODIFIER_5 -> Hotkey.COMBO_MODIFIER_5.button
                 Settings.HOTKEY_BUTTON_COMBO_CHAIN -> Hotkey.COMBO_CHAIN.button
                 Settings.HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER -> Hotkey.COMBO_CHAIN_MODIFIER.button
+                Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE -> Hotkey.COMBO_CHAIN_CONTINUE.button
+                Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER ->
+                    Hotkey.COMBO_CHAIN_CONTINUE_MODIFIER.button
                 else -> -1
             }
 

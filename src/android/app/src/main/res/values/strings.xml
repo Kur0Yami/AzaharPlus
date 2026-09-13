@@ -184,6 +184,8 @@
     <string name="button_combo_modifier_5">Combo Modifier 5</string>
     <string name="button_combo_chain">Combo Chain</string>
     <string name="button_combo_chain_modifier">Combo Chain Modifier</string>
+    <string name="button_combo_chain_continue">Combo Chain Continue</string>
+    <string name="button_combo_chain_continue_modifier">Combo Chain Continue Modifier</string>
     <string name="button_x" translatable="false">X</string>
     <string name="button_y" translatable="false">Y</string>
     <string name="button_l" translatable="false">L</string>
