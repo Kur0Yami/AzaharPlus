@@ -220,12 +220,15 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
                 val handle = activeHandle ?: return false
                 applyDrag(screen, handle, x - dragStartX, y - dragStartY)
                 invalidate()
-                maybeLiveApply(screen)
+                maybeLiveApplyNative()
                 return true
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                activeScreen?.let { applyToSettings(it) }
+                if (activeScreen != null) {
+                    applyNativeLive()
+                    commitToSettings()
+                }
                 activeScreen = null
                 activeHandle = null
                 return true
@@ -302,35 +305,49 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
         screen.rect = r
     }
 
-    // Applies + reloads at a throttled rate while dragging, so the actual game screen visibly
-    // follows the finger (like MMJ) without saving to disk and reloading native settings on
-    // every single touch-move frame.
-    private fun maybeLiveApply(screen: ScreenRect) {
+    // Throttled while dragging so this can run every frame's worth of movement without
+    // spamming the JNI boundary, though the call itself is now cheap enough that throttling
+    // mostly just caps it at a sane rate rather than working around real jank.
+    private fun maybeLiveApplyNative() {
         val now = System.currentTimeMillis()
         if (now - lastLiveApplyTime < LIVE_APPLY_THROTTLE_MS) return
         lastLiveApplyTime = now
-        applyToSettings(screen)
+        applyNativeLive()
     }
 
-    private fun applyToSettings(screen: ScreenRect) {
+    // Pushes both screens' current rects straight into the native renderer's in-memory
+    // settings and asks it to recompute the framebuffer layout right now -- no file I/O, no
+    // Config{} reload, no System::ApplySettings() re-running every other setting. This is
+    // what actually makes the game screen follow the finger smoothly; nothing here persists
+    // across a restart by itself (see commitToSettings for that).
+    private fun applyNativeLive() {
+        val top = topScreen ?: return
+        val bottom = bottomScreen ?: return
+        NativeLibrary.setCustomLayout(
+            NativeLibrary.isPortraitMode(),
+            (top.rect.left * scaleX).toInt(),
+            (top.rect.top * scaleY).toInt(),
+            (top.rect.width() * scaleX).toInt(),
+            (top.rect.height() * scaleY).toInt(),
+            (bottom.rect.left * scaleX).toInt(),
+            (bottom.rect.top * scaleY).toInt(),
+            (bottom.rect.width() * scaleX).toInt(),
+            (bottom.rect.height() * scaleY).toInt()
+        )
+    }
+
+    // Called once on touch-up: writes the screen that was actually being dragged to the
+    // config file so the new layout survives an app restart. The live in-memory value was
+    // already applied continuously during the drag via applyNativeLive(), so this does not
+    // need to touch reloadSettings()/updateFramebuffer() at all -- it's pure persistence.
+    private fun commitToSettings() {
+        val screen = activeScreen ?: return
         if (settings == null) return
-        // Convert this view's local drag pixels back to real display pixels -- the space
-        // the Custom Layout settings and the native renderer actually use.
         screen.xSetting.int = (screen.rect.left * scaleX).toInt()
         screen.ySetting.int = (screen.rect.top * scaleY).toInt()
         screen.widthSetting.int = (screen.rect.width() * scaleX).toInt()
         screen.heightSetting.int = (screen.rect.height() * scaleY).toInt()
-
-        // SettingsFile.saveFile(filename, setting) does a full read-modify-write pass over
-        // the whole config .ini per call -- calling it 4x per drag step (X/Y/Width/Height
-        // separately) is what made resizing feel heavy. Do all 4 in a single pass instead.
         saveFourValuesInOnePass(screen)
-
-        // reloadSettings() alone only re-reads the saved config into memory -- the renderer
-        // needs an explicit poke to actually recompute and redraw the screens at their new
-        // position/size right now, instead of only picking it up on the next app launch.
-        NativeLibrary.reloadSettings()
-        NativeLibrary.updateFramebuffer(NativeLibrary.isPortraitMode())
     }
 
     private fun saveFourValuesInOnePass(screen: ScreenRect) {
@@ -357,17 +374,17 @@ class ScreenLayoutEditor(context: Context, attrs: AttributeSet?) : View(context,
             outputStream?.flush()
             outputStream?.close()
         } catch (_: Exception) {
-            // Best-effort: a dropped frame's worth of drag position isn't worth surfacing an
-            // error over -- the next successful pass (or the final one on release) catches up.
+            // Best-effort: if this particular save hiccups, the value is still correct and
+            // live in the renderer for this session; only a future restart would miss it.
         }
     }
 
     companion object {
         private const val MIN_SIZE_PX = 80f
 
-        // Now a single batched read-modify-write pass per apply (see
-        // saveFourValuesInOnePass) instead of 4 separate ones, so this can run more often
-        // for a smoother, more MMJ-like feel without reintroducing the earlier jank.
-        private const val LIVE_APPLY_THROTTLE_MS = 60L
+        // The native call itself is now cheap (direct memory write + targeted framebuffer
+        // refresh), so this just caps the JNI call rate to something sane rather than
+        // working around real cost.
+        private const val LIVE_APPLY_THROTTLE_MS = 32L
     }
 }
