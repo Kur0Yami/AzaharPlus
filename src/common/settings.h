@@ -488,6 +488,12 @@ struct Values {
     Setting<std::string> combo_button_buttons_3{"", Keys::combo_button_buttons_3};
     Setting<std::string> combo_button_buttons_4{"", Keys::combo_button_buttons_4};
     Setting<std::string> combo_button_buttons_5{"", Keys::combo_button_buttons_5};
+    // Combo Chain: how long (ms) before it resets back to the first step after no presses.
+    Setting<u16> combo_chain_timeout_ms{2000, Keys::combo_chain_timeout_ms};
+    // Macro: how many full cycles one press plays, and the delay (ms) between each
+    // press/release step in the sequence.
+    Setting<u8> macro_repeat_count{5, Keys::macro_repeat_count};
+    Setting<u16> macro_step_delay_ms{80, Keys::macro_step_delay_ms};
 #endif
 
     SwitchableSetting<bool> enable_gamemode{true, Keys::enable_gamemode};
