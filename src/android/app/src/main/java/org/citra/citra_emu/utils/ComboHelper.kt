@@ -34,4 +34,32 @@ object ComboHelper {
             }
         }
     }
+
+    /**
+     * Fires (or releases) the button list configured for the given Macro step.
+     * Independent from comboActivate/Combo Button slots above -- Macro has its own
+     * 5 slots so configuring it doesn't consume a Combo Button slot.
+     * @param slot 1-5, matching Macro Button 1-5 in the Hotkeys settings.
+     */
+    fun macroActivate(buttonStatus: Int, slot: Int = 1) {
+        val macroArray = when (slot) {
+            1 -> IntListSetting.MACRO_BUTTON_BUTTONS.list
+            2 -> IntListSetting.MACRO_BUTTON_BUTTONS_2.list
+            3 -> IntListSetting.MACRO_BUTTON_BUTTONS_3.list
+            4 -> IntListSetting.MACRO_BUTTON_BUTTONS_4.list
+            5 -> IntListSetting.MACRO_BUTTON_BUTTONS_5.list
+            else -> emptyList()
+        }
+        for (nativeButton in macroArray) {
+            if (nativeButton == -1) {
+                continue
+            } else {
+                NativeLibrary.onGamePadEvent(
+                    NativeLibrary.TOUCHSCREEN_DEVICE,
+                    nativeButton,
+                    buttonStatus
+                )
+            }
+        }
+    }
 }
