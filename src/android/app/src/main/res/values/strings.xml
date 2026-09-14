@@ -186,6 +186,8 @@
     <string name="button_combo_chain_modifier">Combo Chain Modifier</string>
     <string name="button_combo_chain_continue">Combo Chain Continue</string>
     <string name="button_combo_chain_continue_modifier">Combo Chain Continue Modifier</string>
+    <string name="button_macro">Macro</string>
+    <string name="button_macro_modifier">Macro Modifier</string>
     <string name="button_x" translatable="false">X</string>
     <string name="button_y" translatable="false">Y</string>
     <string name="button_l" translatable="false">L</string>
@@ -203,6 +205,12 @@
     <string name="combo_button_settings_3">Configure Combo Button 3</string>
     <string name="combo_button_settings_4">Configure Combo Button 4</string>
     <string name="combo_button_settings_5">Configure Combo Button 5</string>
+    <string name="combo_chain_timeout">Combo Chain Timeout</string>
+    <string name="combo_chain_timeout_description">How long (in milliseconds) Combo Chain / Combo Chain Continue waits before resetting back to the first step.</string>
+    <string name="macro_repeat_count">Macro Repeat Count</string>
+    <string name="macro_repeat_count_description">How many times the Macro hotkey repeats its sequence of Combo Button slots per press.</string>
+    <string name="macro_step_delay">Macro Step Delay</string>
+    <string name="macro_step_delay_description">Delay (in milliseconds) between each button press/release in the Macro sequence, to make sure the game registers every input.</string>
 
     <!-- System files strings -->
     <string name="setup_system_files">System Files</string>

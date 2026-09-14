@@ -280,6 +280,9 @@ if (ANDROID)
         "combo_button_buttons_3"
         "combo_button_buttons_4"
         "combo_button_buttons_5"
+        "combo_chain_timeout_ms"
+        "macro_repeat_count"
+        "macro_step_delay_ms"
     )
         string(REPLACE "_" "_1" KEY_JNI_ESCAPED ${KEY})
         set(SETTING_KEY_LIST "${SETTING_KEY_LIST}\n\"${KEY}\",")

@@ -5,6 +5,8 @@
 package org.citra.citra_emu.features.hotkeys
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.preference.PreferenceManager
@@ -12,6 +14,8 @@ import org.citra.citra_emu.CitraApplication
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
 import org.citra.citra_emu.display.ScreenAdjustmentUtil
+import org.citra.citra_emu.features.settings.model.IntListSetting
+import org.citra.citra_emu.features.settings.model.IntSetting
 import org.citra.citra_emu.features.settings.model.Settings
 import org.citra.citra_emu.features.settings.model.view.InputBindingSetting
 import org.citra.citra_emu.utils.ComboHelper
@@ -62,6 +66,17 @@ class HotkeyUtility(
             Hotkey.COMBO_CHAIN_CONTINUE_MODIFIER.button,
             Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER,
             CHAIN_SLOT_MARKER
+        ),
+        // Macro reuses the same modifier-hold/standalone gating too, purely so binding and
+        // suppression behave consistently with every other combo-family trigger. Its
+        // release is a deliberate no-op (see handleKeyRelease) -- the macro's own timer
+        // owns pressing and releasing each step, independent of when the trigger key itself
+        // is physically released.
+        ComboSlot(
+            Hotkey.MACRO_TRIGGER.button,
+            Hotkey.MACRO_MODIFIER.button,
+            Settings.HOTKEY_BUTTON_MACRO_MODIFIER,
+            MACRO_SLOT_MARKER
         )
     )
     private val comboTriggerButtons = comboSlots.map { it.triggerButton }.toSet()
@@ -74,6 +89,13 @@ class HotkeyUtility(
     private var chainNextIndex = 0
     private var chainLastFireTime = 0L
     private var chainFiredSlotNumber: Int? = null
+
+    // Macro runtime state: one press auto-plays through every non-empty combo slot, in
+    // order, for IntSetting.MACRO_REPEAT_COUNT full cycles, waiting
+    // IntSetting.MACRO_STEP_DELAY_MS between every press and release so the game has time
+    // to register each input.
+    private val macroHandler = Handler(Looper.getMainLooper())
+    private var macroRunning = false
 
     private val hotkeyButtons = Hotkey.entries.map { it.button }
     private var hotkeyIsEnabled = false
@@ -180,16 +202,24 @@ class HotkeyUtility(
             buttonSet.contains(it.triggerButton) && comboFiredForKeyId[it.triggerButton] == keyId
         }
         for (slot in firedSlotsThisKey) {
-            val slotNumberToRelease = if (slot.slotNumber == CHAIN_SLOT_MARKER) {
-                chainFiredSlotNumber
+            if (slot.slotNumber == MACRO_SLOT_MARKER) {
+                // Deliberate no-op: the macro's own timer presses and releases each step on
+                // its own schedule, regardless of when the trigger key is physically let go.
             } else {
-                slot.slotNumber
-            }
-            if (slotNumberToRelease != null) {
-                ComboHelper.comboActivate(NativeLibrary.ButtonState.RELEASED, slotNumberToRelease)
-            }
-            if (slot.slotNumber == CHAIN_SLOT_MARKER) {
-                chainFiredSlotNumber = null
+                val slotNumberToRelease = if (slot.slotNumber == CHAIN_SLOT_MARKER) {
+                    chainFiredSlotNumber
+                } else {
+                    slot.slotNumber
+                }
+                if (slotNumberToRelease != null) {
+                    ComboHelper.comboActivate(
+                        NativeLibrary.ButtonState.RELEASED,
+                        slotNumberToRelease
+                    )
+                }
+                if (slot.slotNumber == CHAIN_SLOT_MARKER) {
+                    chainFiredSlotNumber = null
+                }
             }
             comboFiredForKeyId[slot.triggerButton] = null
             handled = true
@@ -289,6 +319,8 @@ class HotkeyUtility(
 
             Hotkey.COMBO_CHAIN.button, Hotkey.COMBO_CHAIN_CONTINUE.button -> fireNextChainStep()
 
+            Hotkey.MACRO_TRIGGER.button -> startMacro()
+
             else -> {}
         }
         hotkeyIsPressed = true
@@ -299,7 +331,8 @@ class HotkeyUtility(
     // actually pressed, this advances the same underlying sequence by one step.
     private fun fireNextChainStep() {
         val now = System.currentTimeMillis()
-        if (now - chainLastFireTime > CHAIN_IDLE_RESET_MS) {
+        val timeoutMs = IntSetting.COMBO_CHAIN_TIMEOUT_MS.int.toLong()
+        if (now - chainLastFireTime > timeoutMs) {
             chainNextIndex = 0
         }
         chainLastFireTime = now
@@ -309,8 +342,62 @@ class HotkeyUtility(
         chainNextIndex = (chainNextIndex + 1) % 5
     }
 
+    private fun slotHasContent(slotNumber: Int): Boolean = when (slotNumber) {
+        1 -> IntListSetting.COMBO_BUTTON_BUTTONS.list.isNotEmpty()
+        2 -> IntListSetting.COMBO_BUTTON_BUTTONS_2.list.isNotEmpty()
+        3 -> IntListSetting.COMBO_BUTTON_BUTTONS_3.list.isNotEmpty()
+        4 -> IntListSetting.COMBO_BUTTON_BUTTONS_4.list.isNotEmpty()
+        5 -> IntListSetting.COMBO_BUTTON_BUTTONS_5.list.isNotEmpty()
+        else -> false
+    }
+
+    // One press auto-plays every non-empty combo slot, in order, for
+    // IntSetting.MACRO_REPEAT_COUNT full cycles. Ignored if a macro is already running, so
+    // spamming the trigger doesn't stack overlapping sequences.
+    private fun startMacro() {
+        if (macroRunning) return
+        val activeSlots = (1..5).filter { slotHasContent(it) }
+        if (activeSlots.isEmpty()) return
+        macroRunning = true
+        runMacroStep(
+            slots = activeSlots,
+            cycle = 0,
+            totalCycles = IntSetting.MACRO_REPEAT_COUNT.int,
+            stepIndex = 0,
+            isPress = true
+        )
+    }
+
+    private fun runMacroStep(
+        slots: List<Int>,
+        cycle: Int,
+        totalCycles: Int,
+        stepIndex: Int,
+        isPress: Boolean
+    ) {
+        if (cycle >= totalCycles) {
+            macroRunning = false
+            return
+        }
+        val stepDelay = IntSetting.MACRO_STEP_DELAY_MS.int.toLong()
+        val slotNumber = slots[stepIndex]
+        if (isPress) {
+            ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, slotNumber)
+            macroHandler.postDelayed({
+                runMacroStep(slots, cycle, totalCycles, stepIndex, isPress = false)
+            }, stepDelay)
+        } else {
+            ComboHelper.comboActivate(NativeLibrary.ButtonState.RELEASED, slotNumber)
+            val nextStepIndex = (stepIndex + 1) % slots.size
+            val nextCycle = if (nextStepIndex == 0) cycle + 1 else cycle
+            macroHandler.postDelayed({
+                runMacroStep(slots, nextCycle, totalCycles, nextStepIndex, isPress = true)
+            }, stepDelay)
+        }
+    }
+
     companion object {
         private const val CHAIN_SLOT_MARKER = 0
-        private const val CHAIN_IDLE_RESET_MS = 2000L
+        private const val MACRO_SLOT_MARKER = -1
     }
 }

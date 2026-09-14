@@ -972,6 +972,44 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
 
+            add(
+                SliderSetting(
+                    IntSetting.COMBO_CHAIN_TIMEOUT_MS,
+                    R.string.combo_chain_timeout,
+                    R.string.combo_chain_timeout_description,
+                    200,
+                    10000,
+                    "ms",
+                    IntSetting.COMBO_CHAIN_TIMEOUT_MS.key,
+                    IntSetting.COMBO_CHAIN_TIMEOUT_MS.defaultValue.toFloat()
+                )
+            )
+
+            add(
+                SliderSetting(
+                    IntSetting.MACRO_REPEAT_COUNT,
+                    R.string.macro_repeat_count,
+                    R.string.macro_repeat_count_description,
+                    1,
+                    50,
+                    "x",
+                    IntSetting.MACRO_REPEAT_COUNT.key,
+                    IntSetting.MACRO_REPEAT_COUNT.defaultValue.toFloat()
+                )
+            )
+
+            add(
+                SliderSetting(
+                    IntSetting.MACRO_STEP_DELAY_MS,
+                    R.string.macro_step_delay,
+                    R.string.macro_step_delay_description,
+                    16,
+                    1000,
+                    "ms",
+                    IntSetting.MACRO_STEP_DELAY_MS.key,
+                    IntSetting.MACRO_STEP_DELAY_MS.defaultValue.toFloat()
+                )
+            )
         }
     }
 
