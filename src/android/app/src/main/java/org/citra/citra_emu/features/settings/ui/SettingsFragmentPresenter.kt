@@ -985,6 +985,67 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
 
+            add(HeaderSetting(R.string.header_macro))
+            add(
+                MultiChoiceSetting(
+                    IntListSetting.MACRO_BUTTON_BUTTONS,
+                    R.string.macro_button_settings,
+                    R.string.macro_button_settings_description,
+                    R.array.comboOptions,
+                    R.array.comboOptionValues,
+                    IntListSetting.MACRO_BUTTON_BUTTONS.key,
+                    IntListSetting.MACRO_BUTTON_BUTTONS.defaultValue
+                )
+            )
+
+            add(
+                MultiChoiceSetting(
+                    IntListSetting.MACRO_BUTTON_BUTTONS_2,
+                    R.string.macro_button_settings_2,
+                    R.string.macro_button_settings_description,
+                    R.array.comboOptions,
+                    R.array.comboOptionValues,
+                    IntListSetting.MACRO_BUTTON_BUTTONS_2.key,
+                    IntListSetting.MACRO_BUTTON_BUTTONS_2.defaultValue
+                )
+            )
+
+            add(
+                MultiChoiceSetting(
+                    IntListSetting.MACRO_BUTTON_BUTTONS_3,
+                    R.string.macro_button_settings_3,
+                    R.string.macro_button_settings_description,
+                    R.array.comboOptions,
+                    R.array.comboOptionValues,
+                    IntListSetting.MACRO_BUTTON_BUTTONS_3.key,
+                    IntListSetting.MACRO_BUTTON_BUTTONS_3.defaultValue
+                )
+            )
+
+            add(
+                MultiChoiceSetting(
+                    IntListSetting.MACRO_BUTTON_BUTTONS_4,
+                    R.string.macro_button_settings_4,
+                    R.string.macro_button_settings_description,
+                    R.array.comboOptions,
+                    R.array.comboOptionValues,
+                    IntListSetting.MACRO_BUTTON_BUTTONS_4.key,
+                    IntListSetting.MACRO_BUTTON_BUTTONS_4.defaultValue
+                )
+            )
+
+            add(
+                MultiChoiceSetting(
+                    IntListSetting.MACRO_BUTTON_BUTTONS_5,
+                    R.string.macro_button_settings_5,
+                    R.string.macro_button_settings_description,
+                    R.array.comboOptions,
+                    R.array.comboOptionValues,
+                    IntListSetting.MACRO_BUTTON_BUTTONS_5.key,
+                    IntListSetting.MACRO_BUTTON_BUTTONS_5.defaultValue
+                )
+            )
+
             add(
                 SliderSetting(
                     IntSetting.MACRO_REPEAT_COUNT,
