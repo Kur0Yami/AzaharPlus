@@ -96,11 +96,26 @@ static const char* android_config_default_file_content = (BOOST_HANA_STRING(R"(
 # How long (in ms) Combo Chain / Combo Chain Continue waits before resetting to the first step. (Default 2000)
 )") DECLARE_KEY(combo_chain_timeout_ms) BOOST_HANA_STRING(R"(
 
-# How many times the Macro hotkey repeats its sequence of Combo Button slots per press. (Default 5)
+# How many times the Macro hotkey repeats its sequence of Macro Button slots per press. (Default 5)
 )") DECLARE_KEY(macro_repeat_count) BOOST_HANA_STRING(R"(
 
 # Delay (in ms) between each press/release step in the Macro sequence, to make sure the game registers every input. (Default 80)
 )") DECLARE_KEY(macro_step_delay_ms) BOOST_HANA_STRING(R"(
+
+# List of buttons which will be triggered by Macro step 1. Independent from combo_button_buttons. (Default [] or empty)
+)") DECLARE_KEY(macro_button_buttons) BOOST_HANA_STRING(R"(
+
+# List of buttons which will be triggered by Macro step 2. (Default [] or empty)
+)") DECLARE_KEY(macro_button_buttons_2) BOOST_HANA_STRING(R"(
+
+# List of buttons which will be triggered by Macro step 3. (Default [] or empty)
+)") DECLARE_KEY(macro_button_buttons_3) BOOST_HANA_STRING(R"(
+
+# List of buttons which will be triggered by Macro step 4. (Default [] or empty)
+)") DECLARE_KEY(macro_button_buttons_4) BOOST_HANA_STRING(R"(
+
+# List of buttons which will be triggered by Macro step 5. (Default [] or empty)
+)") DECLARE_KEY(macro_button_buttons_5) BOOST_HANA_STRING(R"(
 
 [Core]
 # Whether to use the Just-In-Time (JIT) compiler for CPU emulation
