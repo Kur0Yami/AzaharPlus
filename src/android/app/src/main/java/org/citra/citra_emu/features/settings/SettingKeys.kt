@@ -155,4 +155,9 @@ object SettingKeys {
     external fun combo_chain_timeout_ms(): String
     external fun macro_repeat_count(): String
     external fun macro_step_delay_ms(): String
+    external fun macro_button_buttons(): String
+    external fun macro_button_buttons_2(): String
+    external fun macro_button_buttons_3(): String
+    external fun macro_button_buttons_4(): String
+    external fun macro_button_buttons_5(): String
 }
