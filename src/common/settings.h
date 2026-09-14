@@ -494,6 +494,14 @@ struct Values {
     // press/release step in the sequence.
     Setting<u8> macro_repeat_count{5, Keys::macro_repeat_count};
     Setting<u16> macro_step_delay_ms{80, Keys::macro_step_delay_ms};
+    // List of buttons (comma-separated button indices) triggered by each Macro step.
+    // Independent from combo_button_buttons above -- Macro has its own 5 slots so
+    // configuring it doesn't consume a Combo Button slot.
+    Setting<std::string> macro_button_buttons{"", Keys::macro_button_buttons};
+    Setting<std::string> macro_button_buttons_2{"", Keys::macro_button_buttons_2};
+    Setting<std::string> macro_button_buttons_3{"", Keys::macro_button_buttons_3};
+    Setting<std::string> macro_button_buttons_4{"", Keys::macro_button_buttons_4};
+    Setting<std::string> macro_button_buttons_5{"", Keys::macro_button_buttons_5};
 #endif
 
     SwitchableSetting<bool> enable_gamemode{true, Keys::enable_gamemode};
