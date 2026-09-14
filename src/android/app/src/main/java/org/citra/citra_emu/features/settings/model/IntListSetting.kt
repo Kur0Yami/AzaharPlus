@@ -56,6 +56,45 @@ enum class IntListSetting(
         Settings.SECTION_CONTROLS,
         listOf(),
         canBeEmpty = true
+    ),
+
+    /**
+     * Macro Button slots. Independent from COMBO_BUTTON_BUTTONS above -- Macro gets its
+     * own 5 slots so configuring it doesn't consume a Combo Button slot.
+     */
+    MACRO_BUTTON_BUTTONS(
+        SettingKeys.macro_button_buttons(),
+        Settings.SECTION_CONTROLS,
+        listOf(),
+        canBeEmpty = true
+    ),
+
+    MACRO_BUTTON_BUTTONS_2(
+        SettingKeys.macro_button_buttons_2(),
+        Settings.SECTION_CONTROLS,
+        listOf(),
+        canBeEmpty = true
+    ),
+
+    MACRO_BUTTON_BUTTONS_3(
+        SettingKeys.macro_button_buttons_3(),
+        Settings.SECTION_CONTROLS,
+        listOf(),
+        canBeEmpty = true
+    ),
+
+    MACRO_BUTTON_BUTTONS_4(
+        SettingKeys.macro_button_buttons_4(),
+        Settings.SECTION_CONTROLS,
+        listOf(),
+        canBeEmpty = true
+    ),
+
+    MACRO_BUTTON_BUTTONS_5(
+        SettingKeys.macro_button_buttons_5(),
+        Settings.SECTION_CONTROLS,
+        listOf(),
+        canBeEmpty = true
     );
 
     private var backingList: List<Int> = defaultValue
