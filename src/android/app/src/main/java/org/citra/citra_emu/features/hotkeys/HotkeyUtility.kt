@@ -351,12 +351,23 @@ class HotkeyUtility(
         else -> false
     }
 
-    // One press auto-plays every non-empty combo slot, in order, for
+    // Macro Button slots are independent from Combo Button slots above -- separate
+    // settings, separate storage -- so configuring one never consumes the other's slots.
+    private fun macroSlotHasContent(slotNumber: Int): Boolean = when (slotNumber) {
+        1 -> IntListSetting.MACRO_BUTTON_BUTTONS.list.isNotEmpty()
+        2 -> IntListSetting.MACRO_BUTTON_BUTTONS_2.list.isNotEmpty()
+        3 -> IntListSetting.MACRO_BUTTON_BUTTONS_3.list.isNotEmpty()
+        4 -> IntListSetting.MACRO_BUTTON_BUTTONS_4.list.isNotEmpty()
+        5 -> IntListSetting.MACRO_BUTTON_BUTTONS_5.list.isNotEmpty()
+        else -> false
+    }
+
+    // One press auto-plays every non-empty Macro Button slot, in order, for
     // IntSetting.MACRO_REPEAT_COUNT full cycles. Ignored if a macro is already running, so
     // spamming the trigger doesn't stack overlapping sequences.
     private fun startMacro() {
         if (macroRunning) return
-        val activeSlots = (1..5).filter { slotHasContent(it) }
+        val activeSlots = (1..5).filter { macroSlotHasContent(it) }
         if (activeSlots.isEmpty()) return
         macroRunning = true
         runMacroStep(
@@ -382,12 +393,12 @@ class HotkeyUtility(
         val stepDelay = IntSetting.MACRO_STEP_DELAY_MS.int.toLong()
         val slotNumber = slots[stepIndex]
         if (isPress) {
-            ComboHelper.comboActivate(NativeLibrary.ButtonState.PRESSED, slotNumber)
+            ComboHelper.macroActivate(NativeLibrary.ButtonState.PRESSED, slotNumber)
             macroHandler.postDelayed({
                 runMacroStep(slots, cycle, totalCycles, stepIndex, isPress = false)
             }, stepDelay)
         } else {
-            ComboHelper.comboActivate(NativeLibrary.ButtonState.RELEASED, slotNumber)
+            ComboHelper.macroActivate(NativeLibrary.ButtonState.RELEASED, slotNumber)
             val nextStepIndex = (stepIndex + 1) % slots.size
             val nextCycle = if (nextStepIndex == 0) cycle + 1 else cycle
             macroHandler.postDelayed({
