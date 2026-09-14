@@ -194,6 +194,10 @@
     <string name="button_r" translatable="false">R</string>
     <string name="button_zl" translatable="false">ZL</string>
     <string name="button_zr" translatable="false">ZR</string>
+    <string name="button_dpad_up" translatable="false">D-Pad Up</string>
+    <string name="button_dpad_down" translatable="false">D-Pad Down</string>
+    <string name="button_dpad_left" translatable="false">D-Pad Left</string>
+    <string name="button_dpad_right" translatable="false">D-Pad Right</string>
     <string name="input_message_analog_only">This control must be bound to a gamepad analog stick or D-pad axis!</string>
     <string name="input_message_button_only">This control must be bound to a gamepad button!</string>
     <string name="turbo_limit_hotkey">Turbo Speed</string>
@@ -207,8 +211,15 @@
     <string name="combo_button_settings_5">Configure Combo Button 5</string>
     <string name="combo_chain_timeout">Combo Chain Timeout</string>
     <string name="combo_chain_timeout_description">How long (in milliseconds) Combo Chain / Combo Chain Continue waits before resetting back to the first step.</string>
+    <string name="header_macro">Macro</string>
+    <string name="macro_button_settings">Configure Macro Button 1</string>
+    <string name="macro_button_settings_description">Select which buttons are triggered by Macro step 1. These are independent from the Combo Button slots above.</string>
+    <string name="macro_button_settings_2">Configure Macro Button 2</string>
+    <string name="macro_button_settings_3">Configure Macro Button 3</string>
+    <string name="macro_button_settings_4">Configure Macro Button 4</string>
+    <string name="macro_button_settings_5">Configure Macro Button 5</string>
     <string name="macro_repeat_count">Macro Repeat Count</string>
-    <string name="macro_repeat_count_description">How many times the Macro hotkey repeats its sequence of Combo Button slots per press.</string>
+    <string name="macro_repeat_count_description">How many times the Macro hotkey repeats its sequence of Macro Button slots per press.</string>
     <string name="macro_step_delay">Macro Step Delay</string>
     <string name="macro_step_delay_description">Delay (in milliseconds) between each button press/release in the Macro sequence, to make sure the game registers every input.</string>
 
