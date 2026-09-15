@@ -5,18 +5,23 @@
 package org.citra.citra_emu.features.settings.ui
 
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import org.citra.citra_emu.NativeLibrary
+import org.citra.citra_emu.R
 import org.citra.citra_emu.databinding.FragmentSettingsBinding
 import org.citra.citra_emu.features.settings.model.AbstractSetting
 import org.citra.citra_emu.features.settings.model.view.SettingsItem
+import org.citra.citra_emu.utils.FileUtil
 
 class SettingsFragment :
     Fragment(),
@@ -96,6 +101,36 @@ class SettingsFragment :
     override fun onSettingChanged() {
         activityView!!.onSettingChanged()
     }
+
+    /**
+     * Launches a document picker for a .glsl post processing shader file, copies it into the
+     * emulator's shader directory (see NativeLibrary.getShadersDirectory()), then refreshes the
+     * settings list so the new shader shows up in the Post Processing Shader dropdown.
+     */
+    fun pickPostProcessingShaderFile() {
+        pickShaderFile.launch(arrayOf("*/*"))
+    }
+
+    private val pickShaderFile =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            if (uri == null) {
+                return@registerForActivityResult
+            }
+
+            var filename = FileUtil.getFilename(uri)
+            if (!filename.endsWith(".glsl", ignoreCase = true)) {
+                filename += ".glsl"
+            }
+
+            val shadersDirectory = NativeLibrary.getShadersDirectory()
+            val copied = FileUtil.copyUriToInternalStorage(uri, shadersDirectory, filename)
+            if (copied) {
+                showToastMessage(getString(R.string.pp_shader_import_success, filename), true)
+                loadSettingsList()
+            } else {
+                showToastMessage(getString(R.string.pp_shader_import_error), true)
+            }
+        }
 
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(
