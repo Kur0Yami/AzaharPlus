@@ -108,16 +108,19 @@ class SettingsFragment :
      * settings list so the new shader shows up in the Post Processing Shader dropdown.
      */
     fun pickPostProcessingShaderFile() {
-        pickShaderFile.launch(arrayOf("*/*"))
+        pickShaderFile.launch("*/*")
     }
 
     private val pickShaderFile =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             if (uri == null) {
                 return@registerForActivityResult
             }
 
             var filename = FileUtil.getFilename(uri)
+            if (filename.isEmpty()) {
+                filename = "imported_shader"
+            }
             if (!filename.endsWith(".glsl", ignoreCase = true)) {
                 filename += ".glsl"
             }
