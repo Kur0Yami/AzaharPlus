@@ -928,6 +928,7 @@ void RendererVulkan::ReloadPostProcessingShader() {
     present_shaders[CUSTOM_PP_PIPELINE_INDEX] = new_shader;
     present_pipelines[CUSTOM_PP_PIPELINE_INDEX] = new_pipeline;
     pp_shader_valid = true;
+    LOG_INFO(Render_Vulkan, "Loaded post processing shader '{}'", shader_name);
 }
 
 void RendererVulkan::ReloadPipeline(Settings::StereoRenderOption render_3d) {
