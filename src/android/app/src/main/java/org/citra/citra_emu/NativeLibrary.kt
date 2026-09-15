@@ -261,6 +261,20 @@ object NativeLibrary {
 
     external fun getHomeMenuPath(region: Int): String
 
+    /**
+     * Lists the names of post processing shader (.glsl) files currently sitting in the
+     * emulator's shader directory. Backed by VideoCore::GetPostProcessingShaderList, shared by
+     * both the OpenGL and Vulkan renderers -- doesn't need to know which backend is active.
+     */
+    external fun getPostProcessingShaderList(): Array<String>
+
+    /**
+     * Returns the absolute path to the emulator's shader directory, creating it first if it
+     * doesn't exist yet. Used as the copy destination when importing a post processing shader
+     * file picked by the user.
+     */
+    external fun getShadersDirectory(): String
+
     external fun getSystemTitleIds(systemType: Int, region: Int): LongArray
 
     external fun areSystemTitlesInstalled(): BooleanArray
