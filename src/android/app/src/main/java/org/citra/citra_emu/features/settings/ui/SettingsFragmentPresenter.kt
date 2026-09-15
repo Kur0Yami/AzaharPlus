@@ -1388,11 +1388,21 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             )
             add(
                 RunnableSetting(
-                    R.string.pp_shader_import,
-                    R.string.pp_shader_import_description,
+                    R.string.shaders_folder,
+                    R.string.shaders_folder_description,
                     true,
                     0,
-                    { settingsAdapter.onClickImportPostProcessingShader() }
+                    { settingsAdapter.onClickCopyShadersFolder() },
+                    { NativeLibrary.getShadersDirectory() }
+                )
+            )
+            add(
+                RunnableSetting(
+                    R.string.pp_shader_refresh,
+                    R.string.pp_shader_refresh_description,
+                    true,
+                    0,
+                    { settingsAdapter.onClickRefreshShaderList() }
                 )
             )
         }
