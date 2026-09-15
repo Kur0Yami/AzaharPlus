@@ -16,6 +16,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.citra.citra_emu.BuildConfig
 import org.citra.citra_emu.CitraApplication
+import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
 import org.citra.citra_emu.display.ScreenLayout
 import org.citra.citra_emu.display.StereoMode
@@ -1368,6 +1369,32 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             //         BooleanSetting.PRELOAD_TEXTURES.defaultValue
             //     )
             // )
+
+            add(HeaderSetting(R.string.header_post_processing_shader))
+            val ppShaderCustomNames = NativeLibrary.getPostProcessingShaderList()
+            val ppShaderChoices = arrayOf(settingsActivity.getString(R.string.pp_shader_none)) +
+                ppShaderCustomNames
+            val ppShaderValues = arrayOf("None (builtin)") + ppShaderCustomNames
+            add(
+                StringSingleChoiceSetting(
+                    StringSetting.PP_SHADER_NAME,
+                    R.string.pp_shader_name,
+                    R.string.pp_shader_name_description,
+                    ppShaderChoices,
+                    ppShaderValues,
+                    StringSetting.PP_SHADER_NAME.key,
+                    StringSetting.PP_SHADER_NAME.defaultValue
+                )
+            )
+            add(
+                RunnableSetting(
+                    R.string.pp_shader_import,
+                    R.string.pp_shader_import_description,
+                    true,
+                    0,
+                    { settingsAdapter.onClickImportPostProcessingShader() }
+                )
+            )
         }
     }
 
