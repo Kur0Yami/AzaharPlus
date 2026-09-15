@@ -19,6 +19,7 @@
 #include "video_core/host_shaders/vulkan_present_frag.h"
 #include "video_core/host_shaders/vulkan_present_interlaced_frag.h"
 #include "video_core/host_shaders/vulkan_present_vert.h"
+#include "video_core/post_processing_shader_loader.h"
 
 #include "video_core/host_shaders/vulkan_cursor_frag.h"
 #include "video_core/host_shaders/vulkan_cursor_vert.h"
@@ -35,6 +36,140 @@
 MICROPROFILE_DEFINE(Vulkan_RenderFrame, "Vulkan", "Render Frame", MP_RGB(128, 128, 64));
 
 namespace Vulkan {
+
+// Vulkan-flavored equivalent of OpenGL's "dolphin_shader_header" (see
+// post_processing_opengl.cpp). Provides the same helper function names/semantics so a single
+// Dolphin-format .glsl shader body works unmodified on both backends. Reads/writes go through
+// the existing present pipeline's push-constant DrawInfo struct and screen_textures[] sampler
+// array (see host_shaders/vulkan_present.frag) instead of separate uniforms, since GLSL
+// compiled to SPIR-V for Vulkan requires explicit set/binding/push_constant layout qualifiers
+// that OpenGL's GLSL doesn't need.
+constexpr char vulkan_dolphin_shader_header[] = R"(
+#version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
+// hlsl to glsl types
+#define float2 vec2
+#define float3 vec3
+#define float4 vec4
+#define uint2 uvec2
+#define uint3 uvec3
+#define uint4 uvec4
+#define int2 ivec2
+#define int3 ivec3
+#define int4 ivec4
+
+// hlsl to glsl function translation
+#define frac fract
+#define lerp mix
+
+layout (location = 0) in vec2 frag_tex_coord;
+layout (location = 0) out float4 color;
+
+layout (push_constant, std140) uniform DrawInfo {
+    mat4 modelview_matrix;
+    float4 i_resolution;
+    float4 o_resolution;
+    int screen_id_l;
+    int screen_id_r;
+    int layer;
+    int reverse_interlaced;
+};
+
+layout (set = 0, binding = 0) uniform sampler2D screen_textures[3];
+
+vec4 SampleScreenAt(int screen_id, float2 location) {
+#ifdef ARRAY_DYNAMIC_INDEX
+    return texture(screen_textures[screen_id], location);
+#else
+    switch (screen_id) {
+    case 0:
+        return texture(screen_textures[0], location);
+    case 1:
+        return texture(screen_textures[1], location);
+    case 2:
+        return texture(screen_textures[2], location);
+    }
+    return texture(screen_textures[0], location);
+#endif
+}
+
+// Interfacing functions -- names match OpenGL's dolphin_shader_header exactly, so the same
+// .glsl shader body works unmodified on both backends.
+float4 Sample()
+{
+    return SampleScreenAt(screen_id_l, frag_tex_coord);
+}
+
+float4 SampleLocation(float2 location)
+{
+    return SampleScreenAt(screen_id_l, location);
+}
+
+float4 SampleLayer(int in_layer)
+{
+    if (in_layer == 0)
+        return SampleScreenAt(screen_id_l, frag_tex_coord);
+    else
+        return SampleScreenAt(screen_id_r, frag_tex_coord);
+}
+
+// textureOffset() in core GLSL requires a compile-time constant texel offset, which doesn't
+// hold for every shader that uses this macro dynamically -- reproduce the same effect (texel
+// offset -> UV delta) with a regular texture() sample instead.
+#define SampleOffset(offset) SampleScreenAt(screen_id_l, frag_tex_coord + float2(offset) * i_resolution.zw)
+
+float2 GetResolution()
+{
+    return i_resolution.xy;
+}
+
+float2 GetInvResolution()
+{
+    return i_resolution.zw;
+}
+
+float2 GetIResolution()
+{
+    return i_resolution.xy;
+}
+
+float2 GetIInvResolution()
+{
+    return i_resolution.zw;
+}
+
+float2 GetWindowResolution()
+{
+    return o_resolution.xy;
+}
+
+float2 GetInvWindowResolution()
+{
+    return o_resolution.zw;
+}
+
+float2 GetOResolution()
+{
+    return o_resolution.xy;
+}
+
+float2 GetOInvResolution()
+{
+    return o_resolution.zw;
+}
+
+float2 GetCoordinates()
+{
+    return frag_tex_coord;
+}
+
+void SetOutput(float4 color_in)
+{
+    color = color_in;
+}
+
+)";
 
 struct ScreenRectVertex {
     ScreenRectVertex() = default;
@@ -352,7 +487,11 @@ void RendererVulkan::BuildLayouts() {
     cursor_pipeline_layout = instance.GetDevice().createPipelineLayoutUnique(cursor_layout_info);
 }
 
-void RendererVulkan::BuildPipelines() {
+vk::Pipeline RendererVulkan::BuildPresentPipeline(vk::ShaderModule fragment_shader) {
+    // Fixed-function state for the present pipeline. Kept in its own function (rather than
+    // inline in BuildPipelines()) so it can also be called later at runtime by
+    // ReloadPostProcessingShader() to (re)build just the custom PP shader slot, without
+    // duplicating this whole block or needing BuildPipelines() to run again.
     const vk::VertexInputBindingDescription binding = {
         .binding = 0,
         .stride = sizeof(ScreenRectVertex),
@@ -446,39 +585,46 @@ void RendererVulkan::BuildPipelines() {
         .stencilTestEnable = false,
     };
 
-    for (u32 i = 0; i < PRESENT_PIPELINES; i++) {
-        const std::array shader_stages = {
-            vk::PipelineShaderStageCreateInfo{
-                .stage = vk::ShaderStageFlagBits::eVertex,
-                .module = present_vertex_shader,
-                .pName = "main",
-            },
-            vk::PipelineShaderStageCreateInfo{
-                .stage = vk::ShaderStageFlagBits::eFragment,
-                .module = present_shaders[i],
-                .pName = "main",
-            },
-        };
+    const std::array shader_stages = {
+        vk::PipelineShaderStageCreateInfo{
+            .stage = vk::ShaderStageFlagBits::eVertex,
+            .module = present_vertex_shader,
+            .pName = "main",
+        },
+        vk::PipelineShaderStageCreateInfo{
+            .stage = vk::ShaderStageFlagBits::eFragment,
+            .module = fragment_shader,
+            .pName = "main",
+        },
+    };
 
-        const vk::GraphicsPipelineCreateInfo pipeline_info = {
-            .stageCount = static_cast<u32>(shader_stages.size()),
-            .pStages = shader_stages.data(),
-            .pVertexInputState = &vertex_input_info,
-            .pInputAssemblyState = &input_assembly,
-            .pViewportState = &viewport_info,
-            .pRasterizationState = &raster_state,
-            .pMultisampleState = &multisampling,
-            .pDepthStencilState = &depth_info,
-            .pColorBlendState = &color_blending,
-            .pDynamicState = &dynamic_info,
-            .layout = *present_pipeline_layout,
-            .renderPass = main_present_window.Renderpass(),
-        };
+    const vk::GraphicsPipelineCreateInfo pipeline_info = {
+        .stageCount = static_cast<u32>(shader_stages.size()),
+        .pStages = shader_stages.data(),
+        .pVertexInputState = &vertex_input_info,
+        .pInputAssemblyState = &input_assembly,
+        .pViewportState = &viewport_info,
+        .pRasterizationState = &raster_state,
+        .pMultisampleState = &multisampling,
+        .pDepthStencilState = &depth_info,
+        .pColorBlendState = &color_blending,
+        .pDynamicState = &dynamic_info,
+        .layout = *present_pipeline_layout,
+        .renderPass = main_present_window.Renderpass(),
+    };
 
-        const auto [result, pipeline] =
-            instance.GetDevice().createGraphicsPipeline({}, pipeline_info);
-        ASSERT_MSG(result == vk::Result::eSuccess, "Unable to build present pipelines");
-        present_pipelines[i] = pipeline;
+    const auto [result, pipeline] = instance.GetDevice().createGraphicsPipeline({}, pipeline_info);
+    if (result != vk::Result::eSuccess) {
+        LOG_ERROR(Render_Vulkan, "Unable to build present pipeline: {}", vk::to_string(result));
+        return {};
+    }
+    return pipeline;
+}
+
+void RendererVulkan::BuildPipelines() {
+    for (u32 i = 0; i < BUILTIN_PRESENT_PIPELINES; i++) {
+        present_pipelines[i] = BuildPresentPipeline(present_shaders[i]);
+        ASSERT_MSG(present_pipelines[i], "Unable to build present pipelines");
     }
 
     // Build cursor pipeline (simple position-only, inverted color blending)
@@ -724,6 +870,66 @@ void RendererVulkan::FillScreen(Common::Vec3<u8> color, const TextureInfo& textu
     });
 }
 
+void RendererVulkan::ReloadPostProcessingShader() {
+    const std::string shader_name = Settings::values.pp_shader_name.GetValue();
+    if (shader_name == loaded_pp_shader_name) {
+        // Already compiled (or already failed) for this shader name -- nothing to do. This
+        // guard is what keeps the check in ReloadPipeline() (called every frame) cheap: the
+        // actual glslang compile + pipeline rebuild below only runs when the setting changes.
+        return;
+    }
+    loaded_pp_shader_name = shader_name;
+    pp_shader_valid = false;
+
+    const vk::Device device = instance.GetDevice();
+    if (present_pipelines[CUSTOM_PP_PIPELINE_INDEX]) {
+        device.destroyPipeline(present_pipelines[CUSTOM_PP_PIPELINE_INDEX]);
+        present_pipelines[CUSTOM_PP_PIPELINE_INDEX] = nullptr;
+    }
+    if (present_shaders[CUSTOM_PP_PIPELINE_INDEX]) {
+        device.destroyShaderModule(present_shaders[CUSTOM_PP_PIPELINE_INDEX]);
+        present_shaders[CUSTOM_PP_PIPELINE_INDEX] = nullptr;
+    }
+
+    if (shader_name == "None (builtin)") {
+        return;
+    }
+
+    const std::string raw_source = VideoCore::GetPostProcessingShaderCodeRaw(false, shader_name);
+    if (raw_source.empty()) {
+        LOG_ERROR(Render_Vulkan, "Could not load post processing shader '{}'", shader_name);
+        return;
+    }
+    const std::string full_source = vulkan_dolphin_shader_header + raw_source;
+
+    // Wait for any in-flight work to finish before tearing down/replacing pipeline state that
+    // a previous frame's command buffer may still reference. This only runs when the user
+    // actually changes the shader (see the early-out above), so the one-time stall here is
+    // imperceptible in practice.
+    scheduler.Finish();
+
+    const std::string_view preamble =
+        instance.IsImageArrayDynamicIndexSupported() ? "#define ARRAY_DYNAMIC_INDEX" : "";
+    vk::ShaderModule new_shader =
+        Compile(full_source, vk::ShaderStageFlagBits::eFragment, device, preamble);
+    if (!new_shader) {
+        LOG_ERROR(Render_Vulkan, "Failed to compile post processing shader '{}'", shader_name);
+        return;
+    }
+
+    vk::Pipeline new_pipeline = BuildPresentPipeline(new_shader);
+    if (!new_pipeline) {
+        LOG_ERROR(Render_Vulkan, "Failed to build pipeline for post processing shader '{}'",
+                  shader_name);
+        device.destroyShaderModule(new_shader);
+        return;
+    }
+
+    present_shaders[CUSTOM_PP_PIPELINE_INDEX] = new_shader;
+    present_pipelines[CUSTOM_PP_PIPELINE_INDEX] = new_pipeline;
+    pp_shader_valid = true;
+}
+
 void RendererVulkan::ReloadPipeline(Settings::StereoRenderOption render_3d) {
     switch (render_3d) {
     case Settings::StereoRenderOption::Anaglyph:
@@ -735,7 +941,10 @@ void RendererVulkan::ReloadPipeline(Settings::StereoRenderOption render_3d) {
         draw_info.reverse_interlaced = render_3d == Settings::StereoRenderOption::ReverseInterlaced;
         break;
     default:
-        current_pipeline = 0;
+        // Post processing shaders only apply outside of anaglyph/interlaced stereo modes,
+        // matching the OpenGL backend's behavior.
+        ReloadPostProcessingShader();
+        current_pipeline = pp_shader_valid ? CUSTOM_PP_PIPELINE_INDEX : 0;
         break;
     }
 }
