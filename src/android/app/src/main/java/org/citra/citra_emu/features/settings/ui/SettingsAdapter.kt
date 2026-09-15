@@ -5,6 +5,8 @@
 package org.citra.citra_emu.features.settings.ui
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.icu.util.Calendar
@@ -33,6 +35,7 @@ import com.google.android.material.timepicker.TimeFormat
 import java.lang.NumberFormatException
 import java.text.SimpleDateFormat
 import kotlin.math.roundToInt
+import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
 import org.citra.citra_emu.databinding.DialogSliderBinding
 import org.citra.citra_emu.databinding.DialogSoftwareKeyboardBinding
@@ -700,8 +703,15 @@ class SettingsAdapter(private val fragmentView: SettingsFragmentView, public val
         }
     }
 
-    fun onClickImportPostProcessingShader() {
-        (fragmentView as SettingsFragment).pickPostProcessingShaderFile()
+    fun onClickCopyShadersFolder() {
+        val path = NativeLibrary.getShadersDirectory()
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Shaders folder", path))
+        fragmentView.showToastMessage(context.getString(R.string.shaders_folder_copied), true)
+    }
+
+    fun onClickRefreshShaderList() {
+        fragmentView.loadSettingsList()
     }
 
     private fun showConfirmationDialog(titleId: Int, messageId: Int, onConfirm: () -> Unit) {
