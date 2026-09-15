@@ -700,6 +700,10 @@ class SettingsAdapter(private val fragmentView: SettingsFragmentView, public val
         }
     }
 
+    fun onClickImportPostProcessingShader() {
+        (fragmentView as SettingsFragment).pickPostProcessingShaderFile()
+    }
+
     private fun showConfirmationDialog(titleId: Int, messageId: Int, onConfirm: () -> Unit) {
         MaterialAlertDialogBuilder(context)
             .setTitle(titleId)
