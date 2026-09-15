@@ -222,6 +222,14 @@
     <string name="macro_repeat_count_description">How many times the Macro hotkey repeats its sequence of Macro Button slots per press.</string>
     <string name="macro_step_delay">Macro Step Delay</string>
     <string name="macro_step_delay_description">Delay (in milliseconds) between each button press/release in the Macro sequence, to make sure the game registers every input.</string>
+    <string name="header_post_processing_shader">Post Processing Shader</string>
+    <string name="pp_shader_none">None (builtin)</string>
+    <string name="pp_shader_name">Post Processing Shader</string>
+    <string name="pp_shader_name_description">Applies a custom .glsl shader (Dolphin-format, same files work on Citra/Azahar desktop) to the final image. Only takes effect outside of anaglyph/interlaced 3D modes.</string>
+    <string name="pp_shader_import">Import Shader File (.glsl)</string>
+    <string name="pp_shader_import_description">Copy a .glsl post processing shader file into the shader directory so it shows up in the list above.</string>
+    <string name="pp_shader_import_success">Imported %1$s</string>
+    <string name="pp_shader_import_error">Failed to import shader file</string>
 
     <!-- System files strings -->
     <string name="setup_system_files">System Files</string>
