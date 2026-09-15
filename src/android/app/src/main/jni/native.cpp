@@ -75,6 +75,7 @@
 #include "multiplayer.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/gpu.h"
+#include "video_core/post_processing_shader_loader.h"
 #include "video_core/renderer_base.h"
 
 namespace {
@@ -569,6 +570,28 @@ jstring Java_org_citra_citra_1emu_NativeLibrary_getHomeMenuPath(JNIEnv* env,
         return ToJString(env, path);
     }
     return ToJString(env, "");
+}
+
+jobjectArray Java_org_citra_citra_1emu_NativeLibrary_getPostProcessingShaderList(
+    JNIEnv* env, [[maybe_unused]] jobject obj) {
+    const std::vector<std::string> shaders = VideoCore::GetPostProcessingShaderList(false);
+    jobjectArray jshaders = env->NewObjectArray(static_cast<jsize>(shaders.size()),
+                                                env->FindClass("java/lang/String"), nullptr);
+    for (jsize i = 0; i < static_cast<jsize>(shaders.size()); ++i) {
+        env->SetObjectArrayElement(jshaders, i, ToJString(env, shaders[i]));
+    }
+    return jshaders;
+}
+
+jstring Java_org_citra_citra_1emu_NativeLibrary_getShadersDirectory(
+    JNIEnv* env, [[maybe_unused]] jobject obj) {
+    // Make sure the directory (and any parents) actually exist before handing the path back --
+    // the Kotlin side uses this as the destination for imported post processing shader files.
+    const std::string shader_dir = FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir);
+    if (!FileUtil::IsDirectory(shader_dir)) {
+        FileUtil::CreateFullPath(shader_dir);
+    }
+    return ToJString(env, shader_dir);
 }
 
 static CompressionStatus GetCompressFileInfo(Loader::AppLoader::CompressFileInfo& out_info,
