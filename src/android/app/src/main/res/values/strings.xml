@@ -230,6 +230,11 @@
     <string name="pp_shader_import_description">Copy a .glsl post processing shader file into the shader directory so it shows up in the list above.</string>
     <string name="pp_shader_import_success">Imported %1$s</string>
     <string name="pp_shader_import_error">Failed to import shader file</string>
+    <string name="shaders_folder">Shaders Folder</string>
+    <string name="shaders_folder_description">Tap to copy this path. Drop .glsl post processing shader files here using any file manager (ZArchiver, MT Manager, etc.), then use Refresh Shader List below.</string>
+    <string name="shaders_folder_copied">Path copied to clipboard</string>
+    <string name="pp_shader_refresh">Refresh Shader List</string>
+    <string name="pp_shader_refresh_description">Re-scan the shaders folder for .glsl files after you\'ve copied one in.</string>
 
     <!-- System files strings -->
     <string name="setup_system_files">System Files</string>
