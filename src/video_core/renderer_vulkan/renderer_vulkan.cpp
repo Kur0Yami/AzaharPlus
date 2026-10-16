@@ -264,6 +264,11 @@ RendererVulkan::RendererVulkan(Core::System& system, Pica::PicaCore& pica_,
     CompileShaders();
     BuildLayouts();
     BuildPipelines();
+    // RendererOpenGL::Init() loads the post processing shader itself during init, but nothing
+    // equivalent ran here, so the custom shader was only picked up if the settings were
+    // re-applied while the game was already running. Request a reload so the first
+    // DrawScreens() builds the PP pipeline (and picks the right 3D mode pipeline).
+    settings.shader_update_requested = true;
     if (secondary_window) {
         secondary_present_window_ptr = std::make_unique<PresentWindow>(
             *secondary_window, instance, scheduler, IsLowRefreshRate());
