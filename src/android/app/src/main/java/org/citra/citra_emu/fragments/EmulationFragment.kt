@@ -25,6 +25,12 @@ import android.os.SystemClock
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Choreographer
+import android.view.Menu
+import android.view.inputmethod.EditorInfo
+import androidx.recyclerview.widget.LinearLayoutManager
+import org.citra.citra_emu.dialogs.ChatAdapter
+import org.citra.citra_emu.dialogs.ChatMessage
+import org.citra.citra_emu.utils.NetPlayManager
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -233,7 +239,84 @@ class EmulationFragment :
 
     // This is using the correct scope, lint is just acting up
     @SuppressLint("UnsafeRepeatOnLifecycleDetector")
+    private val MENU_FLOATING_CHAT_ID = 9001
+
+    private fun floatingChatEnabled(): Boolean =
+        PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .getBoolean("FloatingChatEnabled", true)
+
+    private fun setFloatingChatEnabled(enabled: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(requireContext()).edit()
+            .putBoolean("FloatingChatEnabled", enabled).apply()
+    }
+
+    private fun applyFloatingChatVisibility() {
+        val enabled = floatingChatEnabled()
+        binding.chatToggle.visibility = if (enabled) View.VISIBLE else View.GONE
+        if (!enabled) {
+            binding.floatingChat.visibility = View.GONE
+            NetPlayManager.setChatOpen(false)
+        }
+    }
+
+    private val floatingChatListener: (Int, String) -> Unit = { _, _ ->
+        activity?.runOnUiThread { refreshFloatingChat() }
+    }
+    private var floatingChatAdapter: ChatAdapter? = null
+
+    private fun setupFloatingChat() {
+        val adapter = ChatAdapter(NetPlayManager.getChatMessages())
+        floatingChatAdapter = adapter
+        binding.chatRecyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
+            stackFromEnd = true
+        }
+        binding.chatRecyclerView.adapter = adapter
+
+        binding.chatToggle.setOnClickListener {
+            val show = binding.floatingChat.visibility != View.VISIBLE
+            binding.floatingChat.visibility = if (show) View.VISIBLE else View.GONE
+            NetPlayManager.setChatOpen(show)
+            if (show) refreshFloatingChat()
+        }
+        binding.sendButton.setOnClickListener { sendFloatingChat() }
+        binding.chatInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                sendFloatingChat()
+                true
+            } else {
+                false
+            }
+        }
+        NetPlayManager.addOnMessageReceivedListener(floatingChatListener)
+        applyFloatingChatVisibility()
+    }
+
+    private fun refreshFloatingChat() {
+        val adapter = floatingChatAdapter ?: return
+        adapter.notifyDataSetChanged()
+        if (adapter.itemCount > 0) {
+            binding.chatRecyclerView.scrollToPosition(adapter.itemCount - 1)
+        }
+    }
+
+    private fun sendFloatingChat() {
+        val text = binding.chatInput.text.toString().trim()
+        if (text.isEmpty()) return
+        val username = NetPlayManager.getUsername(requireContext())
+        NetPlayManager.netPlaySendMessage(text)
+        NetPlayManager.addChatMessage(ChatMessage(nickname = username, username = "", message = text))
+        binding.chatInput.setText("")
+        refreshFloatingChat()
+    }
+
+    override fun onDestroyView() {
+        NetPlayManager.removeOnMessageReceivedListener(floatingChatListener)
+        floatingChatAdapter = null
+        super.onDestroyView()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        setupFloatingChat()
         super.onViewCreated(view, savedInstanceState)
         if (requireActivity().isFinishing) {
             return
@@ -760,8 +843,19 @@ class EmulationFragment :
                 EmulationMenuSettings.dpadSlide
         }
 
+        popupMenu.menu.add(Menu.NONE, MENU_FLOATING_CHAT_ID, Menu.NONE, "Floating chat").apply {
+            isCheckable = true
+            isChecked = floatingChatEnabled()
+        }
+
         popupMenu.setOnMenuItemClickListener {
             when (it.itemId) {
+                MENU_FLOATING_CHAT_ID -> {
+                    setFloatingChatEnabled(!floatingChatEnabled())
+                    applyFloatingChatVisibility()
+                    true
+                }
+
                 R.id.menu_show_overlay -> {
                     EmulationMenuSettings.showOverlay = !EmulationMenuSettings.showOverlay
                     binding.surfaceInputOverlay.refreshControls()
