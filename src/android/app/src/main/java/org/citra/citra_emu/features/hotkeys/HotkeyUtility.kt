@@ -77,7 +77,11 @@ class HotkeyUtility(
             Hotkey.MACRO_MODIFIER.button,
             Settings.HOTKEY_BUTTON_MACRO_MODIFIER,
             MACRO_SLOT_MARKER
-        )
+        ),
+        ComboSlot(Hotkey.MACRO_TRIGGER_2.button, Hotkey.MACRO_MODIFIER.button, Settings.HOTKEY_BUTTON_MACRO_MODIFIER, MACRO_SLOT_MARKER),
+        ComboSlot(Hotkey.MACRO_TRIGGER_3.button, Hotkey.MACRO_MODIFIER.button, Settings.HOTKEY_BUTTON_MACRO_MODIFIER, MACRO_SLOT_MARKER),
+        ComboSlot(Hotkey.MACRO_TRIGGER_4.button, Hotkey.MACRO_MODIFIER.button, Settings.HOTKEY_BUTTON_MACRO_MODIFIER, MACRO_SLOT_MARKER),
+        ComboSlot(Hotkey.MACRO_TRIGGER_5.button, Hotkey.MACRO_MODIFIER.button, Settings.HOTKEY_BUTTON_MACRO_MODIFIER, MACRO_SLOT_MARKER)
     )
     private val comboTriggerButtons = comboSlots.map { it.triggerButton }.toSet()
 
@@ -90,12 +94,12 @@ class HotkeyUtility(
     private var chainLastFireTime = 0L
     private var chainFiredSlotNumber: Int? = null
 
-    // Macro runtime state: one press auto-plays through every non-empty combo slot, in
-    // order, for IntSetting.MACRO_REPEAT_COUNT full cycles, waiting
-    // IntSetting.MACRO_STEP_DELAY_MS between every press and release so the game has time
-    // to register each input.
+    // Macro runtime state: five independent macros (index 1..5). Each plays its own Macro Button
+    // list, for its own repeat count, waiting its own step delay between press and release.
     private val macroHandler = Handler(Looper.getMainLooper())
-    private var macroRunning = false
+    private val macroRunning = BooleanArray(6)
+    private val macroToken = IntArray(6)
+    private val macroPressed = BooleanArray(6)
 
     private val hotkeyButtons = Hotkey.entries.map { it.button }
     private var hotkeyIsEnabled = false
@@ -319,7 +323,11 @@ class HotkeyUtility(
 
             Hotkey.COMBO_CHAIN.button, Hotkey.COMBO_CHAIN_CONTINUE.button -> fireNextChainStep()
 
-            Hotkey.MACRO_TRIGGER.button -> startMacro()
+            Hotkey.MACRO_TRIGGER.button -> startMacro(1)
+            Hotkey.MACRO_TRIGGER_2.button -> startMacro(2)
+            Hotkey.MACRO_TRIGGER_3.button -> startMacro(3)
+            Hotkey.MACRO_TRIGGER_4.button -> startMacro(4)
+            Hotkey.MACRO_TRIGGER_5.button -> startMacro(5)
 
             else -> {}
         }
@@ -362,55 +370,76 @@ class HotkeyUtility(
         else -> false
     }
 
-    // Public entry point for the on-screen Macro button (InputOverlay). Same path as the
-    // physical Macro trigger hotkey, so both behave identically.
-    fun triggerMacro() {
-        startMacro()
+    // Public entry point for the on-screen Macro button (InputOverlay). Defaults to Macro 1.
+    fun triggerMacro(macroNumber: Int = 1) {
+        startMacro(macroNumber)
     }
 
-    // One press auto-plays every non-empty Macro Button slot, in order, for
-    // IntSetting.MACRO_REPEAT_COUNT full cycles. Ignored if a macro is already running, so
-    // spamming the trigger doesn't stack overlapping sequences.
-    private fun startMacro() {
-        if (macroRunning) return
-        val activeSlots = (1..5).filter { macroSlotHasContent(it) }
-        if (activeSlots.isEmpty()) return
-        macroRunning = true
-        runMacroStep(
-            slots = activeSlots,
-            cycle = 0,
-            totalCycles = IntSetting.MACRO_REPEAT_COUNT.int,
-            stepIndex = 0,
-            isPress = true
-        )
-    }
+    // Repeat count per macro. Macro 1 uses the existing global setting. Macros 2 to 5 use their
+    // own saved value, default 1. 0 means repeat until the same trigger is pressed again.
+    private fun macroRepeatCount(n: Int): Int =
+        if (n == 1) {
+            IntSetting.MACRO_REPEAT_COUNT.int
+        } else {
+            PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
+                .getInt("macro_repeat_count_$n", 1)
+        }
 
-    private fun runMacroStep(
-        slots: List<Int>,
-        cycle: Int,
-        totalCycles: Int,
-        stepIndex: Int,
-        isPress: Boolean
-    ) {
-        if (cycle >= totalCycles) {
-            macroRunning = false
+    // Delay between each press and release. Macro 1 uses the existing global setting. Macros 2 to 5
+    // use their own saved value, default 80 ms.
+    private fun macroStepDelay(n: Int): Long =
+        if (n == 1) {
+            IntSetting.MACRO_STEP_DELAY_MS.int.toLong()
+        } else {
+            PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
+                .getInt("macro_step_delay_ms_$n", 80).toLong()
+        }
+
+    private fun startMacro(n: Int) {
+        if (!macroSlotHasContent(n)) return
+        if (macroRunning[n]) {
+            // Repeat 0 runs until stopped, so pressing the same trigger again turns it off.
+            if (macroRepeatCount(n) == 0) stopMacro(n)
             return
         }
-        val stepDelay = IntSetting.MACRO_STEP_DELAY_MS.int.toLong()
-        val slotNumber = slots[stepIndex]
-        if (isPress) {
-            ComboHelper.macroActivate(NativeLibrary.ButtonState.PRESSED, slotNumber)
-            macroHandler.postDelayed({
-                runMacroStep(slots, cycle, totalCycles, stepIndex, isPress = false)
-            }, stepDelay)
-        } else {
-            ComboHelper.macroActivate(NativeLibrary.ButtonState.RELEASED, slotNumber)
-            val nextStepIndex = (stepIndex + 1) % slots.size
-            val nextCycle = if (nextStepIndex == 0) cycle + 1 else cycle
-            macroHandler.postDelayed({
-                runMacroStep(slots, nextCycle, totalCycles, nextStepIndex, isPress = true)
-            }, stepDelay)
+        macroRunning[n] = true
+        macroToken[n]++
+        runMacroStep(n, macroToken[n], cycle = 0, isPress = true)
+    }
+
+    private fun runMacroStep(n: Int, token: Int, cycle: Int, isPress: Boolean) {
+        // Callbacks left over from a stopped macro are ignored.
+        if (token != macroToken[n] || !macroRunning[n]) return
+        val repeat = macroRepeatCount(n)
+        if (repeat != 0 && cycle >= repeat) {
+            macroRunning[n] = false
+            return
         }
+        val delay = macroStepDelay(n)
+        if (isPress) {
+            ComboHelper.macroActivate(NativeLibrary.ButtonState.PRESSED, n)
+            macroPressed[n] = true
+            macroHandler.postDelayed({ runMacroStep(n, token, cycle, isPress = false) }, delay)
+        } else {
+            ComboHelper.macroActivate(NativeLibrary.ButtonState.RELEASED, n)
+            macroPressed[n] = false
+            macroHandler.postDelayed({ runMacroStep(n, token, cycle + 1, isPress = true) }, delay)
+        }
+    }
+
+    // Stops one macro now and releases any button it is still holding.
+    private fun stopMacro(n: Int) {
+        if (macroPressed[n]) {
+            ComboHelper.macroActivate(NativeLibrary.ButtonState.RELEASED, n)
+            macroPressed[n] = false
+        }
+        macroRunning[n] = false
+        macroToken[n]++
+    }
+
+    // Call when the game is paused, goes to the background, or the menu opens.
+    fun stopAllMacros() {
+        for (n in 1..5) stopMacro(n)
     }
 
     companion object {

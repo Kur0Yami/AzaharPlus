@@ -159,6 +159,10 @@ class Settings {
         const val HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER =
             "hotkey_button_combo_chain_continue_modifier"
         const val HOTKEY_BUTTON_MACRO = "hotkey_button_macro"
+        const val HOTKEY_BUTTON_MACRO_2 = "hotkey_button_macro_2"
+        const val HOTKEY_BUTTON_MACRO_3 = "hotkey_button_macro_3"
+        const val HOTKEY_BUTTON_MACRO_4 = "hotkey_button_macro_4"
+        const val HOTKEY_BUTTON_MACRO_5 = "hotkey_button_macro_5"
         const val HOTKEY_BUTTON_MACRO_MODIFIER = "hotkey_button_macro_modifier"
 
         val buttonKeys = listOf(
@@ -243,6 +247,10 @@ class Settings {
             HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE,
             HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER,
             HOTKEY_BUTTON_MACRO,
+            HOTKEY_BUTTON_MACRO_2,
+            HOTKEY_BUTTON_MACRO_3,
+            HOTKEY_BUTTON_MACRO_4,
+            HOTKEY_BUTTON_MACRO_5,
             HOTKEY_BUTTON_MACRO_MODIFIER
         )
         val hotkeyTitles = listOf(
@@ -269,6 +277,10 @@ class Settings {
             R.string.button_combo_chain_continue,
             R.string.button_combo_chain_continue_modifier,
             R.string.button_macro,
+            R.string.button_macro_2,
+            R.string.button_macro_3,
+            R.string.button_macro_4,
+            R.string.button_macro_5,
             R.string.button_macro_modifier
         )
 
