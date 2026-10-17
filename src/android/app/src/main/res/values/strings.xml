@@ -142,6 +142,10 @@
     <string name="controller_clear_all">Clear All Bindings</string>
     <string name="controller_clear_all_confirm">This will remove all current controller bindings.</string>
     <string name="controller_circlepad">Circle Pad</string>
+    <string name="button_circlepad_up">Circle Pad up</string>
+    <string name="button_circlepad_down">Circle Pad down</string>
+    <string name="button_circlepad_left">Circle Pad left</string>
+    <string name="button_circlepad_right">Circle Pad right</string>
     <string name="controller_c">C-Stick</string>
     <string name="controller_hotkeys">Hotkeys</string>
     <string name="controller_hotkeys_description">If the "Hotkey Enable" key is mapped, that key must be pressed in addition to the mapped hotkey</string>

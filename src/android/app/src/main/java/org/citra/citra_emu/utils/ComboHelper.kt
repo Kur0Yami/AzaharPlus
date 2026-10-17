@@ -62,4 +62,52 @@ object ComboHelper {
             }
         }
     }
+
+    /** Macro list for a slot, or empty if the slot is out of range. */
+    fun macroListFor(slot: Int): List<Int> = when (slot) {
+        1 -> IntListSetting.MACRO_BUTTON_BUTTONS.list
+        2 -> IntListSetting.MACRO_BUTTON_BUTTONS_2.list
+        3 -> IntListSetting.MACRO_BUTTON_BUTTONS_3.list
+        4 -> IntListSetting.MACRO_BUTTON_BUTTONS_4.list
+        5 -> IntListSetting.MACRO_BUTTON_BUTTONS_5.list
+        else -> emptyList()
+    }
+
+    /** Splits a macro list into steps. A -1 value separates steps. A list without -1 is one step. */
+    fun parseSteps(list: List<Int>): List<List<Int>> {
+        val steps = mutableListOf<List<Int>>()
+        var current = mutableListOf<Int>()
+        for (value in list) {
+            if (value == -1) {
+                if (current.isNotEmpty()) {
+                    steps.add(current)
+                    current = mutableListOf()
+                }
+            } else {
+                current.add(value)
+            }
+        }
+        if (current.isNotEmpty()) steps.add(current)
+        return steps
+    }
+
+    /** Joins steps back into one list, with -1 between steps. */
+    fun flattenSteps(steps: List<List<Int>>): List<Int> {
+        val out = mutableListOf<Int>()
+        steps.forEachIndexed { i, step ->
+            if (i > 0) out.add(-1)
+            out.addAll(step)
+        }
+        return out
+    }
+
+    fun macroSteps(slot: Int): List<List<Int>> = parseSteps(macroListFor(slot))
+
+    /** Presses or releases every button in one step of a macro. */
+    fun macroStepActivate(buttonStatus: Int, slot: Int, step: Int) {
+        val buttons = macroSteps(slot).getOrNull(step) ?: return
+        for (nativeButton in buttons) {
+            NativeLibrary.onGamePadEvent(NativeLibrary.TOUCHSCREEN_DEVICE, nativeButton, buttonStatus)
+        }
+    }
 }

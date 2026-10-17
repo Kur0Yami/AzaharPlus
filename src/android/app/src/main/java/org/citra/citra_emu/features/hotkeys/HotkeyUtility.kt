@@ -100,6 +100,7 @@ class HotkeyUtility(
     private val macroRunning = BooleanArray(6)
     private val macroToken = IntArray(6)
     private val macroPressed = BooleanArray(6)
+    private val macroCurrentStep = IntArray(6)
 
     private val hotkeyButtons = Hotkey.entries.map { it.button }
     private var hotkeyIsEnabled = false
@@ -404,33 +405,38 @@ class HotkeyUtility(
         }
         macroRunning[n] = true
         macroToken[n]++
-        runMacroStep(n, macroToken[n], cycle = 0, isPress = true)
+        runMacroStep(n, macroToken[n], cycle = 0, step = 0, isPress = true)
     }
 
-    private fun runMacroStep(n: Int, token: Int, cycle: Int, isPress: Boolean) {
+    private fun runMacroStep(n: Int, token: Int, cycle: Int, step: Int, isPress: Boolean) {
         // Callbacks left over from a stopped macro are ignored.
         if (token != macroToken[n] || !macroRunning[n]) return
         val repeat = macroRepeatCount(n)
-        if (repeat != 0 && cycle >= repeat) {
+        val stepCount = ComboHelper.macroSteps(n).size
+        if (stepCount == 0 || (repeat != 0 && cycle >= repeat)) {
             macroRunning[n] = false
             return
         }
         val delay = macroStepDelay(n)
         if (isPress) {
-            ComboHelper.macroActivate(NativeLibrary.ButtonState.PRESSED, n)
+            macroCurrentStep[n] = step
+            ComboHelper.macroStepActivate(NativeLibrary.ButtonState.PRESSED, n, step)
             macroPressed[n] = true
-            macroHandler.postDelayed({ runMacroStep(n, token, cycle, isPress = false) }, delay)
+            macroHandler.postDelayed({ runMacroStep(n, token, cycle, step, isPress = false) }, delay)
         } else {
-            ComboHelper.macroActivate(NativeLibrary.ButtonState.RELEASED, n)
+            ComboHelper.macroStepActivate(NativeLibrary.ButtonState.RELEASED, n, step)
             macroPressed[n] = false
-            macroHandler.postDelayed({ runMacroStep(n, token, cycle + 1, isPress = true) }, delay)
+            val next = step + 1
+            val nextCycle = if (next >= stepCount) cycle + 1 else cycle
+            val nextStep = if (next >= stepCount) 0 else next
+            macroHandler.postDelayed({ runMacroStep(n, token, nextCycle, nextStep, isPress = true) }, delay)
         }
     }
 
-    // Stops one macro now and releases any button it is still holding.
+    // Stops one macro now and releases the step it is still holding.
     private fun stopMacro(n: Int) {
         if (macroPressed[n]) {
-            ComboHelper.macroActivate(NativeLibrary.ButtonState.RELEASED, n)
+            ComboHelper.macroStepActivate(NativeLibrary.ButtonState.RELEASED, n, macroCurrentStep[n])
             macroPressed[n] = false
         }
         macroRunning[n] = false

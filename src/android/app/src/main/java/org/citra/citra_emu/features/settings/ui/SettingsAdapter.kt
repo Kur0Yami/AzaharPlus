@@ -51,7 +51,9 @@ import org.citra.citra_emu.features.settings.model.AbstractStringSetting
 import org.citra.citra_emu.features.settings.model.FloatSetting
 import org.citra.citra_emu.features.settings.model.ScaledFloatSetting
 import org.citra.citra_emu.features.settings.model.view.DateTimeSetting
+import org.citra.citra_emu.features.settings.model.IntListSetting
 import org.citra.citra_emu.features.settings.model.view.InputBindingSetting
+import org.citra.citra_emu.utils.ComboHelper
 import org.citra.citra_emu.features.settings.model.view.MultiChoiceSetting
 import org.citra.citra_emu.features.settings.model.view.SettingsItem
 import org.citra.citra_emu.features.settings.model.view.SingleChoiceSetting
@@ -253,7 +255,84 @@ class SettingsAdapter(private val fragmentView: SettingsFragmentView, public val
         onSingleChoiceClick(item)
     }
 
+    // Macro 1-5 items open the step editor instead of the plain checkbox list, because the order
+    // of steps matters and the checkbox list sorts its values.
+    private fun macroNumberOf(item: MultiChoiceSetting): Int =
+        listOf(
+            IntListSetting.MACRO_BUTTON_BUTTONS,
+            IntListSetting.MACRO_BUTTON_BUTTONS_2,
+            IntListSetting.MACRO_BUTTON_BUTTONS_3,
+            IntListSetting.MACRO_BUTTON_BUTTONS_4,
+            IntListSetting.MACRO_BUTTON_BUTTONS_5
+        ).indexOfFirst { it == item.setting } + 1
+
+    private fun buttonNameFor(value: Int): String {
+        val values = context.resources.getIntArray(R.array.comboOptionValues)
+        val labels = context.resources.getStringArray(R.array.comboOptions)
+        val index = values.indexOf(value)
+        return if (index >= 0) labels[index] else value.toString()
+    }
+
+    private fun saveMacroSteps(item: MultiChoiceSetting, steps: List<List<Int>>) {
+        val setting = item.setSelectedValue(ComboHelper.flattenSteps(steps))
+        fragmentView?.putSetting(setting)
+        fragmentView?.onSettingChanged()
+        fragmentView?.loadSettingsList()
+    }
+
+    private fun showMacroStepsDialog(item: MultiChoiceSetting, steps: MutableList<List<Int>>) {
+        val lines = steps.mapIndexed { i, step ->
+            "Langkah ${i + 1}: " + step.joinToString(", ") { buttonNameFor(it) }
+        }
+        val items: Array<CharSequence> =
+            (lines + listOf("Tambah langkah", "Hapus langkah terakhir")).toTypedArray<CharSequence>()
+        dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(item.nameId)
+            .setItems(items) { _, which ->
+                when {
+                    which < steps.size -> showStepEditor(item, steps, which)
+                    which == steps.size -> showStepEditor(item, steps, -1)
+                    else -> {
+                        if (steps.isNotEmpty()) steps.removeAt(steps.lastIndex)
+                        saveMacroSteps(item, steps)
+                        showMacroStepsDialog(item, steps)
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    // index >= 0 edits that step. index -1 adds a new step at the end.
+    private fun showStepEditor(item: MultiChoiceSetting, steps: MutableList<List<Int>>, index: Int) {
+        val values = context.resources.getIntArray(R.array.comboOptionValues)
+        val current = if (index >= 0) steps[index] else emptyList()
+        val checked = BooleanArray(values.size) { current.contains(values[it]) }
+        dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(if (index >= 0) "Langkah ${index + 1}" else "Langkah baru")
+            .setMultiChoiceItems(R.array.comboOptions, checked) { _, which, isChecked ->
+                checked[which] = isChecked
+            }
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val picked = values.indices.filter { checked[it] }.map { values[it] }
+                if (picked.isNotEmpty()) {
+                    if (index >= 0) steps[index] = picked else steps.add(picked)
+                }
+                saveMacroSteps(item, steps)
+                showMacroStepsDialog(item, steps)
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                showMacroStepsDialog(item, steps)
+            }
+            .show()
+    }
+
     private fun onMultiChoiceClick(item: MultiChoiceSetting) {
+        if (macroNumberOf(item) > 0) {
+            val setting = item.setting as? IntListSetting ?: return
+            showMacroStepsDialog(item, ComboHelper.parseSteps(setting.list).toMutableList())
+            return
+        }
         clickedItem = item
 
         val value: BooleanArray = getSelectionForMultiChoiceValue(item)

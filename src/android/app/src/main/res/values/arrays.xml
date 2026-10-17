@@ -212,6 +212,10 @@
         <item>@string/button_dpad_down</item>
         <item>@string/button_dpad_left</item>
         <item>@string/button_dpad_right</item>
+        <item>@string/button_circlepad_up</item>
+        <item>@string/button_circlepad_down</item>
+        <item>@string/button_circlepad_left</item>
+        <item>@string/button_circlepad_right</item>
     </string-array>
 
     <!-- Ints refer to button values in NativeLibrary -->
@@ -230,6 +234,10 @@
         <item>710</item>
         <item>711</item>
         <item>712</item>
+        <item>714</item>
+        <item>715</item>
+        <item>716</item>
+        <item>717</item>
     </integer-array>
 
 
