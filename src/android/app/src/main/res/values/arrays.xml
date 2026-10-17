@@ -194,6 +194,7 @@
         <item>@string/button_combo_3</item>
         <item>@string/button_combo_4</item>
         <item>@string/button_combo_5</item>
+        <item>@string/button_macro</item>
     </string-array>
 
     <string-array name="comboOptions">
