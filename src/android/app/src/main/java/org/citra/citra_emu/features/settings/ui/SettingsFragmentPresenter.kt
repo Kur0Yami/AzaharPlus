@@ -30,6 +30,7 @@ import org.citra.citra_emu.features.settings.model.BooleanSetting
 import org.citra.citra_emu.features.settings.model.FloatSetting
 import org.citra.citra_emu.features.settings.model.IntListSetting
 import org.citra.citra_emu.features.settings.model.IntSetting
+import org.citra.citra_emu.features.settings.model.PrefIntSetting
 import org.citra.citra_emu.features.settings.model.ScaledFloatSetting
 import org.citra.citra_emu.features.settings.model.Settings
 import org.citra.citra_emu.features.settings.model.StringSetting
@@ -1047,12 +1048,39 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
 
+            for (n in 2..5) {
+                add(
+                    SliderSetting(
+                        PrefIntSetting("macro_repeat_count_$n", Settings.SECTION_CONTROLS, 1),
+                        macroRepeatTitle(n),
+                        R.string.macro_repeat_count_description,
+                        0,
+                        50,
+                        "x",
+                        "macro_repeat_count_$n",
+                        1f
+                    )
+                )
+                add(
+                    SliderSetting(
+                        PrefIntSetting("macro_step_delay_ms_$n", Settings.SECTION_CONTROLS, 80),
+                        macroDelayTitle(n),
+                        R.string.macro_step_delay_description,
+                        16,
+                        1000,
+                        "ms",
+                        "macro_step_delay_ms_$n",
+                        80f
+                    )
+                )
+            }
+
             add(
                 SliderSetting(
                     IntSetting.MACRO_REPEAT_COUNT,
                     R.string.macro_repeat_count,
                     R.string.macro_repeat_count_description,
-                    1,
+                    0,
                     50,
                     "x",
                     IntSetting.MACRO_REPEAT_COUNT.key,
@@ -1073,6 +1101,20 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
         }
+    }
+
+    private fun macroRepeatTitle(n: Int): Int = when (n) {
+        2 -> R.string.macro_repeat_count_2
+        3 -> R.string.macro_repeat_count_3
+        4 -> R.string.macro_repeat_count_4
+        else -> R.string.macro_repeat_count_5
+    }
+
+    private fun macroDelayTitle(n: Int): Int = when (n) {
+        2 -> R.string.macro_step_delay_2
+        3 -> R.string.macro_step_delay_3
+        4 -> R.string.macro_step_delay_4
+        else -> R.string.macro_step_delay_5
     }
 
     private fun getInputObject(key: String): AbstractStringSetting =

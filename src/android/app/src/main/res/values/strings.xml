@@ -223,8 +223,16 @@
     <string name="macro_button_settings_4">Configure Macro Button 4</string>
     <string name="macro_button_settings_5">Configure Macro Button 5</string>
     <string name="macro_repeat_count">Macro Repeat Count</string>
-    <string name="macro_repeat_count_description">How many times the Macro hotkey repeats its sequence of Macro Button slots per press.</string>
+    <string name="macro_repeat_count_description">How many times the macro repeats per press. 0 keeps it running until the same trigger is pressed again.</string>
     <string name="macro_step_delay">Macro Step Delay</string>
+    <string name="macro_repeat_count_2">Macro 2 repeat count</string>
+    <string name="macro_repeat_count_3">Macro 3 repeat count</string>
+    <string name="macro_repeat_count_4">Macro 4 repeat count</string>
+    <string name="macro_repeat_count_5">Macro 5 repeat count</string>
+    <string name="macro_step_delay_2">Macro 2 step delay</string>
+    <string name="macro_step_delay_3">Macro 3 step delay</string>
+    <string name="macro_step_delay_4">Macro 4 step delay</string>
+    <string name="macro_step_delay_5">Macro 5 step delay</string>
     <string name="macro_step_delay_description">Delay (in milliseconds) between each button press/release in the Macro sequence, to make sure the game registers every input.</string>
     <string name="header_post_processing_shader">Post Processing Shader</string>
     <string name="pp_shader_none">None (builtin)</string>
