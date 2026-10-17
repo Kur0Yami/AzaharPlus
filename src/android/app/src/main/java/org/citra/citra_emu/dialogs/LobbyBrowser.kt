@@ -165,6 +165,15 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
                     binding.gameName.text = context.getString(R.string.multiplayer_no_game_info)
                 }
 
+                binding.roomAddress.text = "${room.ip}:${room.port}"
+
+                binding.roomMembers.text = room.members.joinToString(", ") { m ->
+                    val who = m.nickname.ifEmpty { m.username }
+                    if (m.gameName.isNotEmpty()) "$who (${m.gameName})" else who
+                }
+                binding.roomMembers.visibility =
+                    if (room.members.isEmpty()) View.GONE else View.VISIBLE
+
                 itemView.setOnClickListener { onRoomSelected(room) }
             }
         }
