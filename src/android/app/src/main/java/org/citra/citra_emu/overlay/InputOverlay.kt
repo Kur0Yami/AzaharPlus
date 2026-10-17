@@ -254,6 +254,10 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                         button.status == NativeLibrary.ButtonState.PRESSED
                     ) {
                         TurboHelper.toggleTurbo(true)
+                    } else if (button.id == Hotkey.MACRO_TRIGGER.button &&
+                        button.status == NativeLibrary.ButtonState.PRESSED
+                    ) {
+                        NativeLibrary.sEmulationActivity.get()?.triggerMacroFromOverlay()
                     } else {
                         val comboSlot = comboOverlaySlots[button.id]
                         if (comboSlot != null) {
@@ -728,6 +732,18 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                 )
             )
         }
+
+        if (preferences.getBoolean("buttonToggle21", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.MACRO_TRIGGER.button,
+                    orientation
+                )
+            )
+        }
     }
 
     fun refreshControls() {
@@ -1023,6 +1039,14 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                 Hotkey.COMBO_BUTTON_5.button.toString() + "-Y",
                 resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_Y).toFloat() / 1000 * maxY
             )
+            .putFloat(
+                Hotkey.MACRO_TRIGGER.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_MACRO_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.MACRO_TRIGGER.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_MACRO_Y).toFloat() / 1000 * maxY
+            )
             .apply()
     }
 
@@ -1213,6 +1237,14 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             .putFloat(
                 Hotkey.COMBO_BUTTON_5.button.toString() + portrait + "-Y",
                 resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.MACRO_TRIGGER.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_MACRO_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.MACRO_TRIGGER.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_MACRO_PORTRAIT_Y).toFloat() / 1000 * maxY
             )
             .apply()
     }

@@ -90,4 +90,9 @@
     <integer name="N3DS_BUTTON_COMBO_5_PORTRAIT_X">500</integer>
     <integer name="N3DS_BUTTON_COMBO_5_PORTRAIT_Y">640</integer>
 
+    <integer name="N3DS_BUTTON_MACRO_X">600</integer>
+    <integer name="N3DS_BUTTON_MACRO_Y">560</integer>
+    <integer name="N3DS_BUTTON_MACRO_PORTRAIT_X">340</integer>
+    <integer name="N3DS_BUTTON_MACRO_PORTRAIT_Y">925</integer>
+
 </resources>

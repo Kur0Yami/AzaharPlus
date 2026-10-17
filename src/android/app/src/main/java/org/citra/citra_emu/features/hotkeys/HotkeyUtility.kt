@@ -362,6 +362,12 @@ class HotkeyUtility(
         else -> false
     }
 
+    // Public entry point for the on-screen Macro button (InputOverlay). Same path as the
+    // physical Macro trigger hotkey, so both behave identically.
+    fun triggerMacro() {
+        startMacro()
+    }
+
     // One press auto-plays every non-empty Macro Button slot, in order, for
     // IntSetting.MACRO_REPEAT_COUNT full cycles. Ignored if a macro is already running, so
     // spamming the trigger doesn't stack overlapping sequences.
