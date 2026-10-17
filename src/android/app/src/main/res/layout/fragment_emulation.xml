@@ -141,53 +141,58 @@
 
         <LinearLayout
             android:id="@+id/floating_chat"
-            android:layout_width="280dp"
+            android:layout_width="260dp"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
             android:layout_margin="12dp"
-            android:background="#99000000"
             android:orientation="vertical"
-            android:padding="8dp"
             android:visibility="gone">
+
+            <FrameLayout
+                android:id="@+id/chat_drag_handle"
+                android:layout_width="match_parent"
+                android:layout_height="14dp">
+
+                <View
+                    android:layout_width="32dp"
+                    android:layout_height="4dp"
+                    android:layout_gravity="center"
+                    android:background="#66FFFFFF" />
+            </FrameLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/chat_recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="140dp" />
+                android:layout_height="120dp" />
 
-            <LinearLayout
+            <EditText
+                android:id="@+id/chat_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/chat_input"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="Chat..."
-                    android:imeOptions="actionSend"
-                    android:inputType="text"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#AAAAAA" />
-
-                <Button
-                    android:id="@+id/send_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Kirim" />
-            </LinearLayout>
+                android:layout_marginTop="4dp"
+                android:background="#33000000"
+                android:hint="Chat..."
+                android:imeOptions="actionSend"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#99FFFFFF"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <ImageButton
             android:id="@+id/chat_toggle"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="bottom|end"
             android:layout_margin="12dp"
-            android:background="#99000000"
+            android:background="@null"
             android:contentDescription="Chat"
-            android:padding="10dp"
+            android:padding="6dp"
             android:src="@drawable/ic_chat"
             android:tint="#FFFFFF" />
 

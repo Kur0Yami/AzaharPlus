@@ -8,6 +8,7 @@ import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.Context
+import android.view.inputmethod.InputMethodManager
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import android.content.Intent
@@ -25,11 +26,14 @@ import android.os.SystemClock
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Choreographer
+import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.abs
 import android.view.Menu
 import android.view.inputmethod.EditorInfo
 import androidx.recyclerview.widget.LinearLayoutManager
 import org.citra.citra_emu.dialogs.ChatAdapter
 import org.citra.citra_emu.dialogs.ChatMessage
+import org.citra.citra_emu.overlay.OverlayTheme
 import org.citra.citra_emu.utils.NetPlayManager
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -239,6 +243,34 @@ class EmulationFragment :
 
     // This is using the correct scope, lint is just acting up
     @SuppressLint("UnsafeRepeatOnLifecycleDetector")
+    // Plain text line per message: "nickname: message". Compact so it doesn't take much space.
+    private inner class FloatingChatAdapter(private val messages: List<ChatMessage>) :
+        RecyclerView.Adapter<FloatingChatAdapter.ChatLineViewHolder>() {
+
+        inner class ChatLineViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatLineViewHolder {
+            val tv = TextView(parent.context).apply {
+                layoutParams = RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                textSize = 12f
+                setTextColor(android.graphics.Color.WHITE)
+                setShadowLayer(4f, 0f, 0f, android.graphics.Color.BLACK)
+                setPadding(0, 2, 0, 2)
+            }
+            return ChatLineViewHolder(tv)
+        }
+
+        override fun onBindViewHolder(holder: ChatLineViewHolder, position: Int) {
+            val m = messages[position]
+            holder.textView.text = "${m.nickname}: ${m.message}"
+        }
+
+        override fun getItemCount(): Int = messages.size
+    }
+
     private val MENU_FLOATING_CHAT_ID = 9001
 
     private fun floatingChatEnabled(): Boolean =
@@ -262,10 +294,10 @@ class EmulationFragment :
     private val floatingChatListener: (Int, String) -> Unit = { _, _ ->
         activity?.runOnUiThread { refreshFloatingChat() }
     }
-    private var floatingChatAdapter: ChatAdapter? = null
+    private var floatingChatAdapter: FloatingChatAdapter? = null
 
     private fun setupFloatingChat() {
-        val adapter = ChatAdapter(NetPlayManager.getChatMessages())
+        val adapter = FloatingChatAdapter(NetPlayManager.getChatMessages())
         floatingChatAdapter = adapter
         binding.chatRecyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
@@ -278,7 +310,6 @@ class EmulationFragment :
             NetPlayManager.setChatOpen(show)
             if (show) refreshFloatingChat()
         }
-        binding.sendButton.setOnClickListener { sendFloatingChat() }
         binding.chatInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
                 sendFloatingChat()
@@ -289,6 +320,79 @@ class EmulationFragment :
         }
         NetPlayManager.addOnMessageReceivedListener(floatingChatListener)
         applyFloatingChatVisibility()
+        setupDraggableChat()
+        applyChatThemeIcon()
+    }
+
+    // Drag a view by its handle. A short tap on the handle calls onTap. The offset is saved as a
+    // translation from the default corner, so the position is kept after the game restarts.
+    private fun makeDraggable(target: View, handle: View, prefKey: String, onTap: () -> Unit) {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        target.translationX = prefs.getFloat("${prefKey}X", 0f)
+        target.translationY = prefs.getFloat("${prefKey}Y", 0f)
+
+        var downRawX = 0f
+        var downRawY = 0f
+        var startTx = 0f
+        var startTy = 0f
+        var moved = false
+
+        handle.setOnTouchListener { _, e ->
+            val parent = target.parent as? View ?: return@setOnTouchListener false
+            when (e.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downRawX = e.rawX
+                    downRawY = e.rawY
+                    startTx = target.translationX
+                    startTy = target.translationY
+                    moved = false
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = e.rawX - downRawX
+                    val dy = e.rawY - downRawY
+                    if (!moved && (abs(dx) > 16f || abs(dy) > 16f)) moved = true
+                    if (moved) {
+                        // Keep the view inside the screen.
+                        target.translationX = (startTx + dx)
+                            .coerceIn(-target.left.toFloat(), (parent.width - target.right).toFloat())
+                        target.translationY = (startTy + dy)
+                            .coerceIn(-target.top.toFloat(), (parent.height - target.bottom).toFloat())
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (moved) {
+                        prefs.edit()
+                            .putFloat("${prefKey}X", target.translationX)
+                            .putFloat("${prefKey}Y", target.translationY)
+                            .apply()
+                    } else {
+                        onTap()
+                    }
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> true
+                else -> false
+            }
+        }
+    }
+
+    // If the active theme has a "chat" image, use it for the chat button, like the other overlay
+    // buttons. Without one, the built-in icon stays.
+    private fun applyChatThemeIcon() {
+        val themed = OverlayTheme.loadBitmap("chat") ?: return
+        binding.chatToggle.setImageBitmap(themed)
+        binding.chatToggle.imageTintList = null
+    }
+
+    private fun setupDraggableChat() {
+        // The chat button moves by itself. A tap still opens or closes the chat.
+        makeDraggable(binding.chatToggle, binding.chatToggle, "FloatingChatToggle") {
+            binding.chatToggle.performClick()
+        }
+        // The panel moves by its top handle, so typing in the input does not drag it.
+        makeDraggable(binding.floatingChat, binding.chatDragHandle, "FloatingChatPanel") {}
     }
 
     private fun refreshFloatingChat() {
@@ -306,7 +410,14 @@ class EmulationFragment :
         NetPlayManager.netPlaySendMessage(text)
         NetPlayManager.addChatMessage(ChatMessage(nickname = username, username = "", message = text))
         binding.chatInput.setText("")
+        hideKeyboard()
         refreshFloatingChat()
+    }
+
+    private fun hideKeyboard() {
+        binding.chatInput.clearFocus()
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.chatInput.windowToken, 0)
     }
 
     override fun onDestroyView() {
