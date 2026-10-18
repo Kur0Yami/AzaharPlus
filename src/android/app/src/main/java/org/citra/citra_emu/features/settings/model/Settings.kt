@@ -163,6 +163,7 @@ class Settings {
         const val HOTKEY_BUTTON_MACRO_3 = "hotkey_button_macro_3"
         const val HOTKEY_BUTTON_MACRO_4 = "hotkey_button_macro_4"
         const val HOTKEY_BUTTON_MACRO_5 = "hotkey_button_macro_5"
+        const val HOTKEY_BUTTON_MISC_MODIFIER = "hotkey_button_misc_modifier"
         const val HOTKEY_BUTTON_MACRO_MODIFIER = "hotkey_button_macro_modifier"
 
         val buttonKeys = listOf(
@@ -224,14 +225,7 @@ class Settings {
             R.string.button_zr
         )
         val hotKeys = listOf(
-            HOTKEY_ENABLE,
-            HOTKEY_SCREEN_SWAP,
-            HOTKEY_CYCLE_LAYOUT,
-            HOTKEY_CLOSE_GAME,
-            HOTKEY_PAUSE_OR_RESUME,
-            HOTKEY_QUICKSAVE,
-            HOTKEY_QUICKLOAD,
-            HOTKEY_TURBO_LIMIT,
+            HOTKEY_BUTTON_MISC_MODIFIER,
             HOTKEY_BUTTON_COMBO,
             HOTKEY_BUTTON_COMBO_MODIFIER,
             HOTKEY_BUTTON_COMBO_2,
@@ -254,14 +248,7 @@ class Settings {
             HOTKEY_BUTTON_MACRO_MODIFIER
         )
         val hotkeyTitles = listOf(
-            R.string.controller_hotkey_enable_button,
-            R.string.emulation_swap_screens,
-            R.string.emulation_cycle_landscape_layouts,
-            R.string.emulation_close_game,
-            R.string.emulation_toggle_pause,
-            R.string.emulation_quicksave,
-            R.string.emulation_quickload,
-            R.string.turbo_limit_hotkey,
+            R.string.button_misc_modifier,
             R.string.button_combo,
             R.string.button_combo_modifier,
             R.string.button_combo_2,

@@ -52,6 +52,10 @@ import org.citra.citra_emu.features.settings.model.FloatSetting
 import org.citra.citra_emu.features.settings.model.ScaledFloatSetting
 import org.citra.citra_emu.features.settings.model.view.DateTimeSetting
 import org.citra.citra_emu.features.settings.model.IntListSetting
+import org.citra.citra_emu.features.settings.model.Settings
+import org.citra.citra_emu.features.settings.model.view.StringKeyBinding
+import org.citra.citra_emu.features.settings.model.IntSetting
+import androidx.preference.PreferenceManager
 import org.citra.citra_emu.features.settings.model.view.InputBindingSetting
 import org.citra.citra_emu.utils.ComboHelper
 import org.citra.citra_emu.features.settings.model.view.MultiChoiceSetting
@@ -266,37 +270,129 @@ class SettingsAdapter(private val fragmentView: SettingsFragmentView, public val
             IntListSetting.MACRO_BUTTON_BUTTONS_5
         ).indexOfFirst { it == item.setting } + 1
 
-    private fun buttonNameFor(value: Int): String {
-        val values = context.resources.getIntArray(R.array.comboOptionValues)
-        val labels = context.resources.getStringArray(R.array.comboOptions)
-        val index = values.indexOf(value)
-        return if (index >= 0) labels[index] else value.toString()
+    // Short labels so the picker grid fits without scrolling.
+    private val shortButtonNames = mapOf(
+        700 to "A", 701 to "B", 702 to "X", 703 to "Y",
+        773 to "L", 774 to "R", 707 to "ZL", 708 to "ZR",
+        704 to "Start", 705 to "Select",
+        709 to "↑", 710 to "↓", 711 to "←", 712 to "→",
+        714 to "Analog ↑", 715 to "Analog ↓", 716 to "Analog ←", 717 to "Analog →"
+    )
+
+    private fun buttonNameFor(value: Int): String = shortButtonNames[value] ?: value.toString()
+
+    private fun finishMultiChoice() {
+        if (clickedPosition != -1) {
+            notifyItemChanged(clickedPosition)
+            clickedPosition = -1
+        }
     }
 
-    private fun saveMacroSteps(item: MultiChoiceSetting, steps: List<List<Int>>) {
-        val setting = item.setSelectedValue(ComboHelper.flattenSteps(steps))
+    private fun saveMultiChoice(item: MultiChoiceSetting, values: List<Int>) {
+        val setting = item.setSelectedValue(values)
         fragmentView?.putSetting(setting)
         fragmentView?.onSettingChanged()
         fragmentView?.loadSettingsList()
+        finishMultiChoice()
     }
 
+    private fun saveMacroSteps(item: MultiChoiceSetting, steps: List<List<Int>>) {
+        saveMultiChoice(item, ComboHelper.flattenSteps(steps))
+    }
+
+    private fun macroPrefs() = PreferenceManager.getDefaultSharedPreferences(context)
+
+    private fun macroRepeatOf(n: Int): Int =
+        if (n == 1) IntSetting.MACRO_REPEAT_COUNT.int else macroPrefs().getInt("macro_repeat_count_$n", 1)
+
+    private fun macroDelayOf(n: Int): Int =
+        if (n == 1) IntSetting.MACRO_STEP_DELAY_MS.int else macroPrefs().getInt("macro_step_delay_ms_$n", 80)
+
+    private fun saveMacroNumber(item: MultiChoiceSetting, n: Int, isRepeat: Boolean, value: Int) {
+        if (n == 1) {
+            val setting = if (isRepeat) IntSetting.MACRO_REPEAT_COUNT else IntSetting.MACRO_STEP_DELAY_MS
+            setting.int = value
+            fragmentView?.putSetting(setting)
+            fragmentView?.onSettingChanged()
+        } else {
+            val key = if (isRepeat) "macro_repeat_count_$n" else "macro_step_delay_ms_$n"
+            macroPrefs().edit().putInt(key, value).apply()
+        }
+        fragmentView?.loadSettingsList()
+    }
+
+    // Small number prompt for repeat (0 = until stopped) or step delay in ms.
+    private fun editMacroNumber(item: MultiChoiceSetting, steps: MutableList<List<Int>>, isRepeat: Boolean) {
+        val n = macroNumberOf(item)
+        val current = if (isRepeat) macroRepeatOf(n) else macroDelayOf(n)
+        val input = android.widget.EditText(context).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText(current.toString())
+            setSelection(text.length)
+        }
+        dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(if (isRepeat) "Ulang (0 = sampai ditekan lagi)" else "Delay antar tekan (ms)")
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val value = input.text.toString().toIntOrNull()
+                    ?.coerceIn(if (isRepeat) 0 else 16, if (isRepeat) 50 else 1000)
+                    ?: current
+                saveMacroNumber(item, n, isRepeat, value)
+                showMacroStepsDialog(item, steps)
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> showMacroStepsDialog(item, steps) }
+            .show()
+    }
+
+    private val macroTriggerKeys = listOf(
+        Settings.HOTKEY_BUTTON_MACRO, Settings.HOTKEY_BUTTON_MACRO_2,
+        Settings.HOTKEY_BUTTON_MACRO_3, Settings.HOTKEY_BUTTON_MACRO_4, Settings.HOTKEY_BUTTON_MACRO_5
+    )
+    private val macroTriggerTitles = listOf(
+        R.string.button_macro, R.string.button_macro_2,
+        R.string.button_macro_3, R.string.button_macro_4, R.string.button_macro_5
+    )
+
+    private fun openMacroTrigger(item: MultiChoiceSetting, steps: MutableList<List<Int>>) {
+        val n = macroNumberOf(item)
+        val activity = fragmentView.activityView as FragmentActivity
+        MotionBottomSheetDialogFragment.newInstance(
+            StringKeyBinding.binding(macroTriggerKeys[n - 1], macroTriggerTitles[n - 1]),
+            { showMacroStepsDialog(item, steps) },
+            { }
+        ).show(activity.supportFragmentManager, MotionBottomSheetDialogFragment.TAG)
+    }
+
+    // Everything for one Configure Macro in one dialog: trigger, steps, repeat, and delay.
     private fun showMacroStepsDialog(item: MultiChoiceSetting, steps: MutableList<List<Int>>) {
+        val n = macroNumberOf(item)
+        val trigger = StringKeyBinding.label(macroTriggerKeys[n - 1]).ifEmpty { "Belum dibind" }
         val lines = steps.mapIndexed { i, step ->
             "Langkah ${i + 1}: " + step.joinToString(", ") { buttonNameFor(it) }
         }
-        val items: Array<CharSequence> =
-            (lines + listOf("Tambah langkah", "Hapus langkah terakhir")).toTypedArray<CharSequence>()
+        val actions = listOf(
+            "Tambah langkah",
+            "Hapus langkah terakhir",
+            "Ulang: ${macroRepeatOf(n)}x",
+            "Delay: ${macroDelayOf(n)} ms"
+        )
+        val items: Array<CharSequence> = (listOf("Trigger: $trigger") + lines + actions).toTypedArray<CharSequence>()
         dialog = MaterialAlertDialogBuilder(context)
             .setTitle(item.nameId)
             .setItems(items) { _, which ->
+                val step = which - 1
+                val s = steps.size
                 when {
-                    which < steps.size -> showStepEditor(item, steps, which)
-                    which == steps.size -> showStepEditor(item, steps, -1)
-                    else -> {
+                    which == 0 -> openMacroTrigger(item, steps)
+                    step in steps.indices -> showStepEditor(item, steps, step)
+                    step == s -> showStepEditor(item, steps, -1)
+                    step == s + 1 -> {
                         if (steps.isNotEmpty()) steps.removeAt(steps.lastIndex)
                         saveMacroSteps(item, steps)
                         showMacroStepsDialog(item, steps)
                     }
+                    step == s + 2 -> editMacroNumber(item, steps, isRepeat = true)
+                    else -> editMacroNumber(item, steps, isRepeat = false)
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -305,25 +401,49 @@ class SettingsAdapter(private val fragmentView: SettingsFragmentView, public val
 
     // index >= 0 edits that step. index -1 adds a new step at the end.
     private fun showStepEditor(item: MultiChoiceSetting, steps: MutableList<List<Int>>, index: Int) {
-        val values = context.resources.getIntArray(R.array.comboOptionValues)
         val current = if (index >= 0) steps[index] else emptyList()
-        val checked = BooleanArray(values.size) { current.contains(values[it]) }
-        dialog = MaterialAlertDialogBuilder(context)
-            .setTitle(if (index >= 0) "Langkah ${index + 1}" else "Langkah baru")
-            .setMultiChoiceItems(R.array.comboOptions, checked) { _, which, isChecked ->
-                checked[which] = isChecked
-            }
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val picked = values.indices.filter { checked[it] }.map { values[it] }
+        showButtonGridPicker(
+            if (index >= 0) "Langkah ${index + 1}" else "Langkah baru",
+            current,
+            onDone = { picked ->
                 if (picked.isNotEmpty()) {
                     if (index >= 0) steps[index] = picked else steps.add(picked)
                 }
                 saveMacroSteps(item, steps)
                 showMacroStepsDialog(item, steps)
+            },
+            onCancel = { showMacroStepsDialog(item, steps) }
+        )
+    }
+
+    // One grid of toggle boxes, 4 per row, so the whole list fits without scrolling.
+    private fun showButtonGridPicker(
+        title: CharSequence,
+        initial: List<Int>,
+        onDone: (List<Int>) -> Unit,
+        onCancel: () -> Unit
+    ) {
+        val values = context.resources.getIntArray(R.array.comboOptionValues)
+        val boxes = values.map { value ->
+            android.widget.CheckBox(context).apply {
+                text = buttonNameFor(value)
+                isChecked = initial.contains(value)
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
-                showMacroStepsDialog(item, steps)
+        }
+        val pad = (12 * context.resources.displayMetrics.density).toInt()
+        val grid = android.widget.GridLayout(context).apply {
+            columnCount = 4
+            setPadding(pad, pad / 2, pad, 0)
+            boxes.forEach { addView(it) }
+        }
+        dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(title)
+            .setView(grid)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                onDone(values.indices.filter { boxes[it].isChecked }.map { values[it] })
             }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
+            .setOnCancelListener { onCancel() }
             .show()
     }
 
@@ -333,6 +453,16 @@ class SettingsAdapter(private val fragmentView: SettingsFragmentView, public val
             showMacroStepsDialog(item, ComboHelper.parseSteps(setting.list).toMutableList())
             return
         }
+        if (item.choicesId == R.array.comboOptions) {
+            showButtonGridPicker(
+                context.getString(item.nameId),
+                item.selectedValues,
+                onDone = { saveMultiChoice(item, it) },
+                onCancel = { finishMultiChoice() }
+            )
+            return
+        }
+
         clickedItem = item
 
         val value: BooleanArray = getSelectionForMultiChoiceValue(item)

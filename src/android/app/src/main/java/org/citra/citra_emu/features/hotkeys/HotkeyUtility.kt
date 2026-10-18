@@ -103,6 +103,35 @@ class HotkeyUtility(
     private val macroCurrentStep = IntArray(6)
 
     private val hotkeyButtons = Hotkey.entries.map { it.button }
+
+    // Modifiers never count as a hotkey firing, so the game still gets their normal input.
+    private val modifierButtons: Set<Int> = setOf(
+        Hotkey.COMBO_MODIFIER.button, Hotkey.COMBO_MODIFIER_2.button, Hotkey.COMBO_MODIFIER_3.button,
+        Hotkey.COMBO_MODIFIER_4.button, Hotkey.COMBO_MODIFIER_5.button,
+        Hotkey.COMBO_CHAIN_MODIFIER.button, Hotkey.COMBO_CHAIN_CONTINUE_MODIFIER.button,
+        Hotkey.MACRO_MODIFIER.button, Hotkey.MISC_MODIFIER.button
+    )
+
+    // Misc actions: a 3DS button chosen in Gamepad settings (prefs "misc_action_<name>").
+    // While Misc Modifier is held, pressing that button runs the action instead of sending it to the game.
+    private val miscActions = listOf(
+        "swap_screen" to Hotkey.SWAP_SCREEN.button,
+        "cycle_layout" to Hotkey.CYCLE_LAYOUT.button,
+        "close_game" to Hotkey.CLOSE_GAME.button,
+        "pause" to Hotkey.PAUSE_OR_RESUME.button,
+        "quicksave" to Hotkey.QUICKSAVE.button,
+        "quickload" to Hotkey.QUICKLOAD.button,
+        "turbo" to Hotkey.TURBO_LIMIT.button
+    )
+    private var miscModifierHeld = false
+    private val miscConsumed = mutableSetOf<Int>()
+
+    private fun miscActionFor(gameButton: Int): Int? {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
+        return miscActions.firstOrNull { (name, _) ->
+            prefs.getInt("misc_action_$name", -1) == gameButton
+        }?.second
+    }
     private var hotkeyIsEnabled = false
     var hotkeyIsPressed = false
     private val currentlyPressedButtons = mutableSetOf<Int>()
@@ -119,7 +148,8 @@ class HotkeyUtility(
         var handled = false
         val buttonSet = InputBindingSetting.getButtonSet(keyEvent)
         val prefs = PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
-        val enableButton = prefs.getString(Settings.HOTKEY_ENABLE, "")
+        // Hotkey Enable is no longer in the UI. Hotkeys are always enabled.
+        val enableButton = ""
         val thisKeyIsEnableButton = buttonSet.contains(Hotkey.ENABLE.button)
         hotkeyIsEnabled = hotkeyIsEnabled || enableButton == "" || thisKeyIsEnableButton
 
@@ -144,7 +174,7 @@ class HotkeyUtility(
                 true
             }
         }
-        val thisKeyIsHotkey = !thisKeyIsEnableButton && firingHotkeys.isNotEmpty()
+        val thisKeyIsHotkey = !thisKeyIsEnableButton && firingHotkeys.any { it !in modifierButtons }
 
         if (firingHotkeys.any { it in comboTriggerButtons }) {
             val keyId = InputBindingSetting.translateEventToKeyId(keyEvent)
@@ -153,6 +183,14 @@ class HotkeyUtility(
                     comboFiredForKeyId[slot.triggerButton] = keyId
                 }
             }
+        }
+
+        if (buttonSet.contains(Hotkey.MISC_MODIFIER.button)) miscModifierHeld = true
+        val miscNow = if (miscModifierHeld) buttonSet.filter { miscActionFor(it) != null } else emptyList()
+        for (button in miscNow) {
+            val action = miscActionFor(button) ?: continue
+            handled = handleHotkey(action) || handled
+            miscConsumed.add(button)
         }
 
         // Now process all internal buttons associated with this keypress
@@ -172,7 +210,7 @@ class HotkeyUtility(
             else {
                 // if this key press is ALSO associated with a hotkey that will process, skip
                 // the normal key event.
-                if (!thisKeyIsHotkey || !hotkeyIsEnabled) {
+                if (button !in miscNow && (!thisKeyIsHotkey || !hotkeyIsEnabled)) {
                     handled = NativeLibrary.onGamePadEvent(
                         keyEvent.device.descriptor,
                         button,
@@ -194,6 +232,8 @@ class HotkeyUtility(
             handled = true
             hotkeyIsEnabled = false
         }
+
+        if (buttonSet.contains(Hotkey.MISC_MODIFIER.button)) miscModifierHeld = false
 
         for (slot in comboSlots) {
             if (buttonSet.contains(slot.modifierButton)) {
@@ -233,7 +273,7 @@ class HotkeyUtility(
         // Mirrors the "firingHotkeys" gating done in handleKeyPress, so the normal button
         // release is only suppressed when a hotkey actually fired for this physical key.
         val nonComboHotkeyOnKey = Hotkey.entries.any {
-            it.button !in comboTriggerButtons && buttonSet.contains(it.button)
+            it.button !in comboTriggerButtons && it.button !in modifierButtons && buttonSet.contains(it.button)
         }
         val thisKeyIsHotkey =
             !thisKeyIsEnableButton && (nonComboHotkeyOnKey || firedSlotsThisKey.isNotEmpty())
@@ -246,6 +286,8 @@ class HotkeyUtility(
                     // all hotkeys are no longer pressed
                     hotkeyIsPressed = false
                 }
+            } else if (miscConsumed.remove(button)) {
+                currentlyPressedButtons.remove(button)
             } else {
                 // if this key ALSO sends a hotkey command that we already/will handle,
                 // or if we did not register the press of this button, e.g. if this key

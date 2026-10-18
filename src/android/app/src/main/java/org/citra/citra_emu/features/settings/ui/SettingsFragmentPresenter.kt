@@ -39,6 +39,8 @@ import org.citra.citra_emu.features.settings.model.view.HeaderSetting
 import org.citra.citra_emu.features.settings.model.view.InputBindingSetting
 import org.citra.citra_emu.features.settings.model.view.MultiChoiceSetting
 import org.citra.citra_emu.features.settings.model.view.RunnableSetting
+import org.citra.citra_emu.features.settings.model.view.StringKeyBinding
+import org.citra.citra_emu.fragments.MotionBottomSheetDialogFragment
 import org.citra.citra_emu.features.settings.model.view.SettingsItem
 import org.citra.citra_emu.features.settings.model.view.SingleChoiceSetting
 import org.citra.citra_emu.features.settings.model.view.SliderSetting
@@ -897,11 +899,19 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 add(InputBindingSetting(button, Settings.triggerTitles[i]))
             }
 
-            add(HeaderSetting(R.string.controller_hotkeys, R.string.controller_hotkeys_description))
-            Settings.hotKeys.forEachIndexed { i: Int, key: String ->
-                val button = getInputObject(key)
-                add(InputBindingSetting(button, Settings.hotkeyTitles[i]))
+            add(InputBindingSetting(getInputObject(Settings.HOTKEY_BUTTON_MISC_MODIFIER), R.string.button_misc_modifier))
+            miscActions.forEach { (name, titleId) ->
+                add(
+                    RunnableSetting(
+                        titleId,
+                        R.string.misc_action_description,
+                        true,
+                        runnable = { showMiscPicker(name, titleId) },
+                        value = { miscActionLabel(name) }
+                    )
+                )
             }
+            add(InputBindingSetting(getInputObject(Settings.HOTKEY_BUTTON_MACRO_MODIFIER), R.string.button_macro_modifier))
 
             add(HeaderSetting(R.string.miscellaneous))
             add(
@@ -914,63 +924,25 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
 
-            add(
-                MultiChoiceSetting(
-                    IntListSetting.COMBO_BUTTON_BUTTONS,
-                    R.string.combo_button_settings,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS.defaultValue
+            add(HeaderSetting(R.string.header_combo))
+            (1..5).forEach { n ->
+                add(
+                    RunnableSetting(
+                        configureComboTitles[n - 1],
+                        R.string.configure_description,
+                        true,
+                        runnable = { showComboDialog(n) },
+                        value = { comboSummary(n) }
+                    )
                 )
-            )
-
+            }
             add(
-                MultiChoiceSetting(
-                    IntListSetting.COMBO_BUTTON_BUTTONS_2,
-                    R.string.combo_button_settings_2,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_2.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_2.defaultValue
-                )
-            )
-
-            add(
-                MultiChoiceSetting(
-                    IntListSetting.COMBO_BUTTON_BUTTONS_3,
-                    R.string.combo_button_settings_3,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_3.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_3.defaultValue
-                )
-            )
-
-            add(
-                MultiChoiceSetting(
-                    IntListSetting.COMBO_BUTTON_BUTTONS_4,
-                    R.string.combo_button_settings_4,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_4.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_4.defaultValue
-                )
-            )
-
-            add(
-                MultiChoiceSetting(
-                    IntListSetting.COMBO_BUTTON_BUTTONS_5,
-                    R.string.combo_button_settings_5,
-                    R.string.combo_button_settings_description,
-                    R.array.comboOptions,
-                    R.array.comboOptionValues,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_5.key,
-                    IntListSetting.COMBO_BUTTON_BUTTONS_5.defaultValue
+                RunnableSetting(
+                    R.string.configure_combo_chain,
+                    R.string.configure_description,
+                    true,
+                    runnable = { showChainDialog() },
+                    value = { chainSummary() }
                 )
             )
 
@@ -1048,58 +1020,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
 
-            for (n in 2..5) {
-                add(
-                    SliderSetting(
-                        PrefIntSetting("macro_repeat_count_$n", Settings.SECTION_CONTROLS, 1),
-                        macroRepeatTitle(n),
-                        R.string.macro_repeat_count_description,
-                        0,
-                        50,
-                        "x",
-                        "macro_repeat_count_$n",
-                        1f
-                    )
-                )
-                add(
-                    SliderSetting(
-                        PrefIntSetting("macro_step_delay_ms_$n", Settings.SECTION_CONTROLS, 80),
-                        macroDelayTitle(n),
-                        R.string.macro_step_delay_description,
-                        16,
-                        1000,
-                        "ms",
-                        "macro_step_delay_ms_$n",
-                        80f
-                    )
-                )
-            }
-
-            add(
-                SliderSetting(
-                    IntSetting.MACRO_REPEAT_COUNT,
-                    R.string.macro_repeat_count,
-                    R.string.macro_repeat_count_description,
-                    0,
-                    50,
-                    "x",
-                    IntSetting.MACRO_REPEAT_COUNT.key,
-                    IntSetting.MACRO_REPEAT_COUNT.defaultValue.toFloat()
-                )
-            )
-
-            add(
-                SliderSetting(
-                    IntSetting.MACRO_STEP_DELAY_MS,
-                    R.string.macro_step_delay,
-                    R.string.macro_step_delay_description,
-                    16,
-                    1000,
-                    "ms",
-                    IntSetting.MACRO_STEP_DELAY_MS.key,
-                    IntSetting.MACRO_STEP_DELAY_MS.defaultValue.toFloat()
-                )
-            )
         }
     }
 
@@ -1115,6 +1035,183 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
         3 -> R.string.macro_step_delay_3
         4 -> R.string.macro_step_delay_4
         else -> R.string.macro_step_delay_5
+    }
+
+    // ---- Misc actions: a 3DS button per action, used with Misc Modifier ----
+    private val miscActions = listOf(
+        "swap_screen" to R.string.emulation_swap_screens,
+        "cycle_layout" to R.string.emulation_cycle_landscape_layouts,
+        "close_game" to R.string.emulation_close_game,
+        "pause" to R.string.emulation_toggle_pause,
+        "quicksave" to R.string.emulation_quicksave,
+        "quickload" to R.string.emulation_quickload,
+        "turbo" to R.string.turbo_limit_hotkey
+    )
+
+    private fun miscActionLabel(name: String): String {
+        val ctx = settingsActivity
+        val value = PreferenceManager.getDefaultSharedPreferences(ctx).getInt("misc_action_$name", -1)
+        if (value == -1) return ctx.getString(R.string.misc_action_not_set)
+        val values = ctx.resources.getIntArray(R.array.comboOptionValues)
+        val labels = ctx.resources.getStringArray(R.array.comboOptions)
+        val index = values.indexOf(value)
+        return if (index >= 0) labels[index] else value.toString()
+    }
+
+    private fun showMiscPicker(name: String, titleId: Int) {
+        val ctx = settingsActivity
+        val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
+        val values = ctx.resources.getIntArray(R.array.comboOptionValues)
+        val labels = ctx.resources.getStringArray(R.array.comboOptions).toList() + ctx.getString(R.string.misc_action_clear)
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(titleId)
+            .setItems(labels.toTypedArray<CharSequence>()) { _, which ->
+                val value = if (which < values.size) values[which] else -1
+                prefs.edit().putInt("misc_action_$name", value).apply()
+                fragmentView.loadSettingsList()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    // ---- Combo 1-5 and Chain: Modifier, Combo Button (bind), and the button list ----
+    private val configureComboTitles = listOf(
+        R.string.configure_combo_1, R.string.configure_combo_2, R.string.configure_combo_3,
+        R.string.configure_combo_4, R.string.configure_combo_5
+    )
+    private val comboTrigKeys = listOf(
+        Settings.HOTKEY_BUTTON_COMBO, Settings.HOTKEY_BUTTON_COMBO_2, Settings.HOTKEY_BUTTON_COMBO_3,
+        Settings.HOTKEY_BUTTON_COMBO_4, Settings.HOTKEY_BUTTON_COMBO_5
+    )
+    private val comboModKeys = listOf(
+        Settings.HOTKEY_BUTTON_COMBO_MODIFIER, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_2,
+        Settings.HOTKEY_BUTTON_COMBO_MODIFIER_3, Settings.HOTKEY_BUTTON_COMBO_MODIFIER_4,
+        Settings.HOTKEY_BUTTON_COMBO_MODIFIER_5
+    )
+    private val comboTrigTitles = listOf(
+        R.string.button_combo, R.string.button_combo_2, R.string.button_combo_3,
+        R.string.button_combo_4, R.string.button_combo_5
+    )
+    private val comboModTitles = listOf(
+        R.string.button_combo_modifier, R.string.button_combo_modifier_2, R.string.button_combo_modifier_3,
+        R.string.button_combo_modifier_4, R.string.button_combo_modifier_5
+    )
+    private val comboLists = listOf(
+        IntListSetting.COMBO_BUTTON_BUTTONS, IntListSetting.COMBO_BUTTON_BUTTONS_2,
+        IntListSetting.COMBO_BUTTON_BUTTONS_3, IntListSetting.COMBO_BUTTON_BUTTONS_4,
+        IntListSetting.COMBO_BUTTON_BUTTONS_5
+    )
+
+    private fun bindLabel(key: String): String =
+        StringKeyBinding.label(key).ifEmpty { settingsActivity.getString(R.string.not_bound) }
+
+    private fun comboSummary(n: Int): String {
+        val i = n - 1
+        val keys = comboLists[i].list.joinToString(", ") { shortButtonName(it) }.ifEmpty { settingsActivity.getString(R.string.not_bound) }
+        return "$keys  ·  ${bindLabel(comboModKeys[i])} + ${bindLabel(comboTrigKeys[i])}"
+    }
+
+    private fun chainSummary(): String =
+        "${bindLabel(Settings.HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER)} + ${bindLabel(Settings.HOTKEY_BUTTON_COMBO_CHAIN)}"
+
+    private fun openBind(key: String, titleId: Int, onDone: () -> Unit) {
+        MotionBottomSheetDialogFragment.newInstance(
+            StringKeyBinding.binding(key, titleId),
+            { onDone() },
+            { }
+        ).show(settingsActivity.supportFragmentManager, MotionBottomSheetDialogFragment.TAG)
+    }
+
+    private fun showConfigure(title: CharSequence, rows: () -> List<Pair<String, () -> Unit>>) {
+        val list = rows()
+        MaterialAlertDialogBuilder(settingsActivity)
+            .setTitle(title)
+            .setItems(list.map { it.first }.toTypedArray<CharSequence>()) { _, which -> list[which].second() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showComboDialog(n: Int) {
+        val i = n - 1
+        val list = comboLists[i]
+        showConfigure(settingsActivity.getString(configureComboTitles[i])) {
+            listOf(
+                "Modifier: " + bindLabel(comboModKeys[i]) to {
+                    openBind(comboModKeys[i], comboModTitles[i]) { showComboDialog(n) }
+                },
+                "Combo Button: " + bindLabel(comboTrigKeys[i]) to {
+                    openBind(comboTrigKeys[i], comboTrigTitles[i]) { showComboDialog(n) }
+                },
+                "Tombol: " + list.list.joinToString(", ") { shortButtonName(it) }.ifEmpty { "-" } to {
+                    showGridPick(list.list, { picked ->
+                        list.list = picked
+                        fragmentView.putSetting(list)
+                        fragmentView.onSettingChanged()
+                        fragmentView.loadSettingsList()
+                        showComboDialog(n)
+                    }, { showComboDialog(n) })
+                }
+            )
+        }
+    }
+
+    private fun showChainDialog() {
+        showConfigure(settingsActivity.getString(R.string.configure_combo_chain)) {
+            listOf(
+                "Modifier: " + bindLabel(Settings.HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER) to {
+                    openBind(Settings.HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER, R.string.button_combo_chain_modifier) { showChainDialog() }
+                },
+                "Chain: " + bindLabel(Settings.HOTKEY_BUTTON_COMBO_CHAIN) to {
+                    openBind(Settings.HOTKEY_BUTTON_COMBO_CHAIN, R.string.button_combo_chain) { showChainDialog() }
+                },
+                "Continue: " + bindLabel(Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE) to {
+                    openBind(Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE, R.string.button_combo_chain_continue) { showChainDialog() }
+                },
+                "Continue Modifier: " + bindLabel(Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER) to {
+                    openBind(
+                        Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER,
+                        R.string.button_combo_chain_continue_modifier
+                    ) { showChainDialog() }
+                }
+            )
+        }
+    }
+
+    private fun shortButtonName(value: Int): String = shortButtonNames[value] ?: value.toString()
+
+    private val shortButtonNames = mapOf(
+        700 to "A", 701 to "B", 702 to "X", 703 to "Y",
+        773 to "L", 774 to "R", 707 to "ZL", 708 to "ZR",
+        704 to "Start", 705 to "Select",
+        709 to "↑", 710 to "↓", 711 to "←", 712 to "→",
+        714 to "Analog ↑", 715 to "Analog ↓", 716 to "Analog ←", 717 to "Analog →"
+    )
+
+    // 18 buttons in 4 columns, so the whole list fits without scrolling.
+    private fun showGridPick(initial: List<Int>, onDone: (List<Int>) -> Unit, onCancel: () -> Unit) {
+        val ctx = settingsActivity
+        val values = ctx.resources.getIntArray(R.array.comboOptionValues)
+        val boxes = values.map { value ->
+            android.widget.CheckBox(ctx).apply {
+                text = shortButtonName(value)
+                isChecked = initial.contains(value)
+            }
+        }
+        val pad = (12 * ctx.resources.displayMetrics.density).toInt()
+        val grid = android.widget.GridLayout(ctx).apply {
+            columnCount = 4
+            setPadding(pad, pad / 2, pad, 0)
+            boxes.forEach { addView(it) }
+        }
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.button_list_title)
+            .setView(grid)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                onDone(values.indices.filter { boxes[it].isChecked }.map { values[it] })
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
+            .setOnCancelListener { onCancel() }
+            .show()
     }
 
     private fun getInputObject(key: String): AbstractStringSetting =

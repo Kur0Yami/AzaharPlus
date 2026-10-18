@@ -144,6 +144,7 @@ class InputBindingSetting(val abstractSetting: AbstractSetting, titleId: Int) :
                     Hotkey.COMBO_CHAIN_CONTINUE_MODIFIER.button
                 Settings.HOTKEY_BUTTON_MACRO -> Hotkey.MACRO_TRIGGER.button
                 Settings.HOTKEY_BUTTON_MACRO_MODIFIER -> Hotkey.MACRO_MODIFIER.button
+                Settings.HOTKEY_BUTTON_MISC_MODIFIER -> Hotkey.MISC_MODIFIER.button
                 else -> -1
             }
 
