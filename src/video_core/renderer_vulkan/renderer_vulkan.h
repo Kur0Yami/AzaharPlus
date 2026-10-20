@@ -67,7 +67,13 @@ static_assert(sizeof(PresentUniformData) == 112,
               "PresentUniformData does not structure in shader!");
 
 class RendererVulkan : public VideoCore::RendererBase {
-    static constexpr std::size_t PRESENT_PIPELINES = 3;
+    // Slots 0-2 are the built-in present shaders (normal/anaglyph/interlaced), compiled once
+    // at startup from precompiled SPIR-V headers. Slot 3 is reserved for a user-supplied
+    // custom post processing shader (pp_shader_name), compiled at runtime via glslang and
+    // rebuilt on demand whenever the setting changes -- see ReloadPostProcessingShader().
+    static constexpr std::size_t BUILTIN_PRESENT_PIPELINES = 3;
+    static constexpr std::size_t CUSTOM_PP_PIPELINE_INDEX = 3;
+    static constexpr std::size_t PRESENT_PIPELINES = 4;
 
 public:
     explicit RendererVulkan(Core::System& system, Pica::PicaCore& pica, Frontend::EmuWindow& window,
@@ -85,6 +91,8 @@ public:
 
 private:
     void ReloadPipeline(Settings::StereoRenderOption render_3d);
+    void ReloadPostProcessingShader();
+    vk::Pipeline BuildPresentPipeline(vk::ShaderModule fragment_shader);
     void CompileShaders();
     void BuildLayouts();
     void BuildPipelines();
@@ -141,6 +149,12 @@ private:
     std::array<vk::Sampler, 2> present_samplers;
     vk::ShaderModule present_vertex_shader;
     u32 current_pipeline = 0;
+    // Name of the pp_shader_name setting value that present_shaders[CUSTOM_PP_PIPELINE_INDEX]
+    // was last (re)compiled for. Compared against the live setting each frame in
+    // ReloadPipeline() so the (relatively expensive) runtime GLSL->SPIR-V compile only runs
+    // when the user actually changes the shader, not on every frame.
+    std::string loaded_pp_shader_name;
+    bool pp_shader_valid = false;
 
     std::array<ScreenInfo, 3> screen_infos{};
     PresentUniformData draw_info{};

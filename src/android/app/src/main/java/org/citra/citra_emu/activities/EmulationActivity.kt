@@ -74,6 +74,10 @@ class EmulationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEmulationBinding
     private lateinit var screenAdjustmentUtil: ScreenAdjustmentUtil
     private lateinit var hotkeyUtility: HotkeyUtility
+
+    fun triggerMacroFromOverlay() {
+        hotkeyUtility.triggerMacro()
+    }
     lateinit var secondaryDisplayManager: SecondaryDisplay
 
     private val onShutdown = Runnable {

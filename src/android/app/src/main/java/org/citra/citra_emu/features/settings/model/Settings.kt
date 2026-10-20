@@ -144,6 +144,27 @@ class Settings {
         const val HOTKEY_QUICKLOAD = "hotkey_quickpause"
         const val HOTKEY_TURBO_LIMIT = "hotkey_turbo_limit"
         const val HOTKEY_BUTTON_COMBO = "hotkey_button_combo"
+        const val HOTKEY_BUTTON_COMBO_MODIFIER = "hotkey_button_combo_modifier"
+        const val HOTKEY_BUTTON_COMBO_2 = "hotkey_button_combo_2"
+        const val HOTKEY_BUTTON_COMBO_MODIFIER_2 = "hotkey_button_combo_modifier_2"
+        const val HOTKEY_BUTTON_COMBO_3 = "hotkey_button_combo_3"
+        const val HOTKEY_BUTTON_COMBO_MODIFIER_3 = "hotkey_button_combo_modifier_3"
+        const val HOTKEY_BUTTON_COMBO_4 = "hotkey_button_combo_4"
+        const val HOTKEY_BUTTON_COMBO_MODIFIER_4 = "hotkey_button_combo_modifier_4"
+        const val HOTKEY_BUTTON_COMBO_5 = "hotkey_button_combo_5"
+        const val HOTKEY_BUTTON_COMBO_MODIFIER_5 = "hotkey_button_combo_modifier_5"
+        const val HOTKEY_BUTTON_COMBO_CHAIN = "hotkey_button_combo_chain"
+        const val HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER = "hotkey_button_combo_chain_modifier"
+        const val HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE = "hotkey_button_combo_chain_continue"
+        const val HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER =
+            "hotkey_button_combo_chain_continue_modifier"
+        const val HOTKEY_BUTTON_MACRO = "hotkey_button_macro"
+        const val HOTKEY_BUTTON_MACRO_2 = "hotkey_button_macro_2"
+        const val HOTKEY_BUTTON_MACRO_3 = "hotkey_button_macro_3"
+        const val HOTKEY_BUTTON_MACRO_4 = "hotkey_button_macro_4"
+        const val HOTKEY_BUTTON_MACRO_5 = "hotkey_button_macro_5"
+        const val HOTKEY_BUTTON_MISC_MODIFIER = "hotkey_button_misc_modifier"
+        const val HOTKEY_BUTTON_MACRO_MODIFIER = "hotkey_button_macro_modifier"
 
         val buttonKeys = listOf(
             KEY_BUTTON_A,
@@ -204,26 +225,50 @@ class Settings {
             R.string.button_zr
         )
         val hotKeys = listOf(
-            HOTKEY_ENABLE,
-            HOTKEY_SCREEN_SWAP,
-            HOTKEY_CYCLE_LAYOUT,
-            HOTKEY_CLOSE_GAME,
-            HOTKEY_PAUSE_OR_RESUME,
-            HOTKEY_QUICKSAVE,
-            HOTKEY_QUICKLOAD,
-            HOTKEY_TURBO_LIMIT,
-            HOTKEY_BUTTON_COMBO
+            HOTKEY_BUTTON_MISC_MODIFIER,
+            HOTKEY_BUTTON_COMBO,
+            HOTKEY_BUTTON_COMBO_MODIFIER,
+            HOTKEY_BUTTON_COMBO_2,
+            HOTKEY_BUTTON_COMBO_MODIFIER_2,
+            HOTKEY_BUTTON_COMBO_3,
+            HOTKEY_BUTTON_COMBO_MODIFIER_3,
+            HOTKEY_BUTTON_COMBO_4,
+            HOTKEY_BUTTON_COMBO_MODIFIER_4,
+            HOTKEY_BUTTON_COMBO_5,
+            HOTKEY_BUTTON_COMBO_MODIFIER_5,
+            HOTKEY_BUTTON_COMBO_CHAIN,
+            HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER,
+            HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE,
+            HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER,
+            HOTKEY_BUTTON_MACRO,
+            HOTKEY_BUTTON_MACRO_2,
+            HOTKEY_BUTTON_MACRO_3,
+            HOTKEY_BUTTON_MACRO_4,
+            HOTKEY_BUTTON_MACRO_5,
+            HOTKEY_BUTTON_MACRO_MODIFIER
         )
         val hotkeyTitles = listOf(
-            R.string.controller_hotkey_enable_button,
-            R.string.emulation_swap_screens,
-            R.string.emulation_cycle_landscape_layouts,
-            R.string.emulation_close_game,
-            R.string.emulation_toggle_pause,
-            R.string.emulation_quicksave,
-            R.string.emulation_quickload,
-            R.string.turbo_limit_hotkey,
-            R.string.button_combo
+            R.string.button_misc_modifier,
+            R.string.button_combo,
+            R.string.button_combo_modifier,
+            R.string.button_combo_2,
+            R.string.button_combo_modifier_2,
+            R.string.button_combo_3,
+            R.string.button_combo_modifier_3,
+            R.string.button_combo_4,
+            R.string.button_combo_modifier_4,
+            R.string.button_combo_5,
+            R.string.button_combo_modifier_5,
+            R.string.button_combo_chain,
+            R.string.button_combo_chain_modifier,
+            R.string.button_combo_chain_continue,
+            R.string.button_combo_chain_continue_modifier,
+            R.string.button_macro,
+            R.string.button_macro_2,
+            R.string.button_macro_3,
+            R.string.button_macro_4,
+            R.string.button_macro_5,
+            R.string.button_macro_modifier
         )
 
         // TODO: Move these in with the other setting keys in GenerateSettingKeys.cmake

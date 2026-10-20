@@ -11,6 +11,8 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.VectorDrawable
 import android.os.Build
@@ -47,6 +49,28 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
     private val overlayJoysticks: MutableSet<InputOverlayDrawableJoystick> = HashSet()
+
+    // Maps each on-screen Combo Button's hotkey id to its slot number (1-5), used both to
+    // fire the right ComboHelper slot on tap and to draw a small number badge on the icon
+    // so the 5 combo buttons are distinguishable from each other.
+    private val comboOverlaySlots = mapOf(
+        Hotkey.COMBO_BUTTON.button to 1,
+        Hotkey.COMBO_BUTTON_2.button to 2,
+        Hotkey.COMBO_BUTTON_3.button to 3,
+        Hotkey.COMBO_BUTTON_4.button to 4,
+        Hotkey.COMBO_BUTTON_5.button to 5
+    )
+    private val comboBadgePaint = Paint().apply {
+        color = Color.WHITE
+        isAntiAlias = true
+        isFakeBoldText = true
+        textAlign = Paint.Align.CENTER
+        setShadowLayer(4f, 0f, 1f, Color.BLACK)
+    }
+
+    // Optional custom background from the active theme (bg_landscape.png / bg_portrait.png).
+    // Null means no theme background is provided -- nothing extra gets drawn in that case.
+    private var themeBackground: Bitmap? = null
     private var isInEditMode = false
     private var buttonBeingConfigured: InputOverlayDrawableButton? = null
     private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
@@ -79,9 +103,53 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+        themeBackground?.let { bg ->
+            // The theme background is scaled to the full view, but this overlay sits on top of
+            // the actual game render surface -- drawing the background as-is would paint over
+            // the emulated screens too. Cut those areas out first so the background only fills
+            // the border/letterbox space around them (screens is null before/without an active
+            // emulation window, in which case there's nothing to cut out yet).
+            val screens = NativeLibrary.getScreenLayout()
+            if (screens != null && screens.size == 8) {
+                canvas.save()
+                if (screens[2] > screens[0] && screens[3] > screens[1]) {
+                    canvas.clipOutRect(screens[0], screens[1], screens[2], screens[3])
+                }
+                if (screens[6] > screens[4] && screens[7] > screens[5]) {
+                    canvas.clipOutRect(screens[4], screens[5], screens[6], screens[7])
+                }
+                canvas.drawBitmap(bg, 0f, 0f, null)
+                canvas.restore()
+            } else {
+                canvas.drawBitmap(bg, 0f, 0f, null)
+            }
+        }
         overlayButtons.forEach { it.draw(canvas) }
         overlayDpads.forEach { it.draw(canvas) }
         overlayJoysticks.forEach { it.draw(canvas) }
+        drawComboBadges(canvas)
+    }
+
+    // Draws a small slot number (1-5) centered on each on-screen Combo Button so they can
+    // be told apart, since they otherwise all share the same icon.
+    private fun drawComboBadges(canvas: Canvas) {
+        overlayButtons.forEach { button ->
+            val slot = comboOverlaySlots[button.id] ?: return@forEach
+            // Skip the badge once a theme supplies this exact slot its own distinct art --
+            // it no longer needs a number to tell it apart from the others. Falls back to
+            // the shared built-in icon (or another slot's theme file) still gets a badge,
+            // since those cases are exactly when the icons look identical.
+            val themeName = themeNameForButtonId(button.id)
+            if (themeName != null && OverlayTheme.loadBitmap(themeName) != null) return@forEach
+            val bounds = button.bounds
+            comboBadgePaint.textSize = bounds.height() * 0.4f
+            canvas.drawText(
+                slot.toString(),
+                bounds.centerX().toFloat(),
+                bounds.centerY() - (comboBadgePaint.ascent() + comboBadgePaint.descent()) / 2,
+                comboBadgePaint
+            )
+        }
     }
 
     private fun swapScreen() {
@@ -203,8 +271,15 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                         button.status == NativeLibrary.ButtonState.PRESSED
                     ) {
                         TurboHelper.toggleTurbo(true)
-                    } else if (button.id == Hotkey.COMBO_BUTTON.button) {
-                        ComboHelper.comboActivate(button.status)
+                    } else if (button.id == Hotkey.MACRO_TRIGGER.button &&
+                        button.status == NativeLibrary.ButtonState.PRESSED
+                    ) {
+                        NativeLibrary.sEmulationActivity.get()?.triggerMacroFromOverlay()
+                    } else {
+                        val comboSlot = comboOverlaySlots[button.id]
+                        if (comboSlot != null) {
+                            ComboHelper.comboActivate(button.status, comboSlot)
+                        }
                     }
 
                     NativeLibrary.onGamePadEvent(
@@ -626,6 +701,66 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                 )
             )
         }
+
+        if (preferences.getBoolean("buttonToggle17", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.COMBO_BUTTON_2.button,
+                    orientation
+                )
+            )
+        }
+
+        if (preferences.getBoolean("buttonToggle18", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.COMBO_BUTTON_3.button,
+                    orientation
+                )
+            )
+        }
+
+        if (preferences.getBoolean("buttonToggle19", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.COMBO_BUTTON_4.button,
+                    orientation
+                )
+            )
+        }
+
+        if (preferences.getBoolean("buttonToggle20", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.COMBO_BUTTON_5.button,
+                    orientation
+                )
+            )
+        }
+
+        if (preferences.getBoolean("buttonToggle21", false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_combo,
+                    R.drawable.button_combo_pressed,
+                    Hotkey.MACRO_TRIGGER.button,
+                    orientation
+                )
+            )
+        }
     }
 
     fun refreshControls() {
@@ -644,7 +779,49 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
         if (EmulationMenuSettings.showOverlay) {
             addOverlayControls(orientation)
         }
+        loadThemeBackground(orientation)
         invalidate()
+    }
+
+    // (name, width, height) that themeBackground currently reflects, so redundant calls (e.g.
+    // control scale/opacity changes that also route through refreshControls()) don't re-decode
+    // and re-scale the same bitmap every time.
+    private var themeBackgroundKey: Triple<String, Int, Int>? = null
+
+    // Loads the theme's background for the current orientation, scaled to fill this view.
+    // Leaves themeBackground null (nothing drawn) if the theme doesn't provide one. width/height
+    // are 0 the first time this runs (called from init(), before layout) -- onSizeChanged()
+    // below re-triggers this once real dimensions are known so the background isn't stuck
+    // missing until some unrelated setting change happens to call refreshControls() again.
+    private fun loadThemeBackground(orientation: String) {
+        val name = if (orientation == "-Portrait") {
+            OverlayTheme.Names.BG_PORTRAIT
+        } else {
+            OverlayTheme.Names.BG_LANDSCAPE
+        }
+        val key = Triple(name, width, height)
+        if (themeBackgroundKey == key) return
+        themeBackgroundKey = key
+        val raw = OverlayTheme.loadBitmap(name)
+        themeBackground = if (raw != null && width > 0 && height > 0) {
+            Bitmap.createScaledBitmap(raw, width, height, true)
+        } else {
+            null
+        }
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w > 0 && h > 0) {
+            val orientation =
+                if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    "-Portrait"
+                } else {
+                    ""
+                }
+            loadThemeBackground(orientation)
+            invalidate()
+        }
     }
 
     private fun saveControlPosition(sharedPrefsId: Int, x: Int, y: Int, orientation: String) {
@@ -866,6 +1043,46 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                 Hotkey.COMBO_BUTTON.button.toString() + "-Y",
                 resources.getInteger(R.integer.N3DS_BUTTON_COMBO_Y).toFloat() / 1000 * maxY
             )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_2.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_2_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_2.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_2_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_3.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_3_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_3.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_3_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_4.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_4_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_4.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_4_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_5.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_5.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.MACRO_TRIGGER.button.toString() + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_MACRO_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.MACRO_TRIGGER.button.toString() + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_MACRO_Y).toFloat() / 1000 * maxY
+            )
             .apply()
     }
 
@@ -1044,6 +1261,46 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                 Hotkey.COMBO_BUTTON.button.toString() + portrait + "-Y",
                 resources.getInteger(R.integer.N3DS_BUTTON_COMBO_PORTRAIT_Y).toFloat() / 1000 * maxY
             )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_2.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_2_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_2.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_2_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_3.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_3_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_3.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_3_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_4.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_4_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_4.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_4_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_5.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.COMBO_BUTTON_5.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_COMBO_5_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
+            .putFloat(
+                Hotkey.MACRO_TRIGGER.button.toString() + portrait + "-X",
+                resources.getInteger(R.integer.N3DS_BUTTON_MACRO_PORTRAIT_X).toFloat() / 1000 * maxX
+            )
+            .putFloat(
+                Hotkey.MACRO_TRIGGER.button.toString() + portrait + "-Y",
+                resources.getInteger(R.integer.N3DS_BUTTON_MACRO_PORTRAIT_Y).toFloat() / 1000 * maxY
+            )
             .apply()
     }
 
@@ -1061,7 +1318,19 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
          * @param scale         The scale factor for the bitmap.
          * @return The scaled [Bitmap]
          */
-        private fun getBitmap(context: Context, drawableId: Int, scale: Float): Bitmap {
+        private fun getBitmap(
+            context: Context,
+            drawableId: Int,
+            scale: Float,
+            themeName: String? = null
+        ): Bitmap {
+            if (themeName != null) {
+                val themed = OverlayTheme.loadBitmap(themeName)
+                if (themed != null) {
+                    return resizeBitmap(context, themed, scale)
+                }
+            }
+
             try {
                 val bitmap = BitmapFactory.decodeResource(context.resources, drawableId)
                 return resizeBitmap(context, bitmap, scale)
@@ -1138,6 +1407,33 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
          * @param buttonId     Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
          * @return An [InputOverlayDrawableButton] with the correct drawing bounds set.
          */
+        // Maps a button/hotkey id to the clean, unambiguous theme file base name a custom
+        // skin should use for it (see OverlayTheme.Names). Returns null for ids that aren't
+        // themeable (falls back to the built-in drawable in that case).
+        private fun themeNameForButtonId(buttonId: Int): String? = when (buttonId) {
+            NativeLibrary.ButtonType.BUTTON_A -> OverlayTheme.Names.A
+            NativeLibrary.ButtonType.BUTTON_B -> OverlayTheme.Names.B
+            NativeLibrary.ButtonType.BUTTON_X -> OverlayTheme.Names.X
+            NativeLibrary.ButtonType.BUTTON_Y -> OverlayTheme.Names.Y
+            NativeLibrary.ButtonType.TRIGGER_L -> OverlayTheme.Names.L
+            NativeLibrary.ButtonType.TRIGGER_R -> OverlayTheme.Names.R
+            NativeLibrary.ButtonType.BUTTON_ZL -> OverlayTheme.Names.ZL
+            NativeLibrary.ButtonType.BUTTON_ZR -> OverlayTheme.Names.ZR
+            NativeLibrary.ButtonType.BUTTON_START -> OverlayTheme.Names.START
+            NativeLibrary.ButtonType.BUTTON_SELECT -> OverlayTheme.Names.SELECT
+            NativeLibrary.ButtonType.BUTTON_HOME -> OverlayTheme.Names.HOME
+            NativeLibrary.ButtonType.BUTTON_SWAP -> OverlayTheme.Names.SWAP_SCREEN
+            NativeLibrary.ButtonType.BUTTON_TURBO -> OverlayTheme.Names.TURBO
+            Hotkey.COMBO_BUTTON.button -> OverlayTheme.Names.COMBO_1
+            Hotkey.COMBO_BUTTON_2.button -> OverlayTheme.Names.COMBO_2
+            Hotkey.COMBO_BUTTON_3.button -> OverlayTheme.Names.COMBO_3
+            Hotkey.COMBO_BUTTON_4.button -> OverlayTheme.Names.COMBO_4
+            Hotkey.COMBO_BUTTON_5.button -> OverlayTheme.Names.COMBO_5
+            else -> null
+        }
+
+        private fun pressedThemeName(name: String?): String? = name?.plus("_pressed")
+
         private fun initializeOverlayButton(
             context: Context,
             defaultResId: Int,
@@ -1173,8 +1469,10 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             val opacity: Int = preferences.getInt("controlOpacity", 50) * 255 / 100
 
             // Initialize the InputOverlayDrawableButton.
-            val defaultStateBitmap = getBitmap(context, defaultResId, scale)
-            val pressedStateBitmap = getBitmap(context, pressedResId, scale)
+            val themeName = themeNameForButtonId(buttonId)
+            val defaultStateBitmap = getBitmap(context, defaultResId, scale, themeName)
+            val pressedStateBitmap =
+                getBitmap(context, pressedResId, scale, pressedThemeName(themeName))
             val overlayDrawable =
                 InputOverlayDrawableButton(
                     res,
@@ -1246,10 +1544,19 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             val opacity: Int = preferences.getInt("controlOpacity", 50) * 255 / 100
 
             // Initialize the InputOverlayDrawableDpad.
-            val defaultStateBitmap = getBitmap(context, defaultResId, scale)
-            val pressedOneDirectionStateBitmap = getBitmap(context, pressedOneDirectionResId, scale)
-            val pressedTwoDirectionsStateBitmap =
-                getBitmap(context, pressedTwoDirectionsResId, scale)
+            val defaultStateBitmap = getBitmap(context, defaultResId, scale, OverlayTheme.Names.DPAD)
+            val pressedOneDirectionStateBitmap = getBitmap(
+                context,
+                pressedOneDirectionResId,
+                scale,
+                OverlayTheme.Names.DPAD_PRESSED_ONE
+            )
+            val pressedTwoDirectionsStateBitmap = getBitmap(
+                context,
+                pressedTwoDirectionsResId,
+                scale,
+                OverlayTheme.Names.DPAD_PRESSED_TWO
+            )
             val overlayDrawable = InputOverlayDrawableDpad(
                 res,
                 defaultStateBitmap,
@@ -1310,9 +1617,16 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             val opacity: Int = preferences.getInt("controlOpacity", 50) * 255 / 100
 
             // Initialize the InputOverlayDrawableJoystick.
-            val bitmapOuter = getBitmap(context, resOuter, scale)
-            val bitmapInnerDefault = getBitmap(context, defaultResInner, scale)
-            val bitmapInnerPressed = getBitmap(context, pressedResInner, scale)
+            val isCStick = joystick == NativeLibrary.ButtonType.STICK_C
+            val outerThemeName =
+                if (isCStick) OverlayTheme.Names.C_STICK_RANGE else OverlayTheme.Names.JOYSTICK_RANGE
+            val innerThemeName =
+                if (isCStick) OverlayTheme.Names.C_STICK else OverlayTheme.Names.JOYSTICK
+            val innerPressedThemeName =
+                if (isCStick) OverlayTheme.Names.C_STICK_PRESSED else OverlayTheme.Names.JOYSTICK_PRESSED
+            val bitmapOuter = getBitmap(context, resOuter, scale, outerThemeName)
+            val bitmapInnerDefault = getBitmap(context, defaultResInner, scale, innerThemeName)
+            val bitmapInnerPressed = getBitmap(context, pressedResInner, scale, innerPressedThemeName)
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.

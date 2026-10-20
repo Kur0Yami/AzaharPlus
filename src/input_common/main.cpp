@@ -7,6 +7,7 @@
 #include <thread>
 #include "common/param_package.h"
 #include "input_common/analog_from_button.h"
+#include "input_common/combo/combo_button.h"
 #ifdef ENABLE_GCADAPTER
 #include "input_common/gcadapter/gc_adapter.h"
 #include "input_common/gcadapter/gc_poller.h"
@@ -41,6 +42,7 @@ void Init() {
 #endif
     keyboard = std::make_shared<Keyboard>();
     Input::RegisterFactory<Input::ButtonDevice>("keyboard", keyboard);
+    Combo::Init();
     Input::RegisterFactory<Input::AnalogDevice>("analog_from_button",
                                                 std::make_shared<AnalogFromButton>());
     motion_emu = std::make_shared<MotionEmu>();
@@ -62,6 +64,7 @@ void Shutdown() {
 #endif
     Input::UnregisterFactory<Input::ButtonDevice>("keyboard");
     keyboard.reset();
+    Combo::Shutdown();
     Input::UnregisterFactory<Input::AnalogDevice>("analog_from_button");
     Input::UnregisterFactory<Input::MotionDevice>("motion_emu");
     motion_emu.reset();
