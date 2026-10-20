@@ -74,6 +74,10 @@ class EmulationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEmulationBinding
     private lateinit var screenAdjustmentUtil: ScreenAdjustmentUtil
     private lateinit var hotkeyUtility: HotkeyUtility
+
+    fun triggerMacroFromOverlay() {
+        hotkeyUtility.triggerMacro()
+    }
     lateinit var secondaryDisplayManager: SecondaryDisplay
 
     private val onShutdown = Runnable {
@@ -263,6 +267,8 @@ class EmulationActivity : AppCompatActivity() {
         }
         EmulationLifecycleUtil.removeHook(onShutdown)
         NativeLibrary.playTimeManagerStop()
+        NativeLibrary.resetProgramId()
+        NativeLibrary.importQueuedZipPass()
         isEmulationRunning = false
         instance = null
         secondaryDisplayManager.releasePresentation()

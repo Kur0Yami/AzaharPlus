@@ -1,3 +1,4 @@
+// Copyright Citra Emulator Project / Azahar Emulator Project
 // Copyright 2016-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the misc/licenses/gplv2.txt file included.
@@ -141,6 +142,14 @@ public:
         } else
 #endif
         {
+            std::string error;
+            for (int i = 0; i < 16; i++) {
+                error += fmt::format("r{:02d} = {:08X}\n", i, parent.GetReg(i));
+            }
+            error += fmt::format("ExceptionRaised(exception = {}, pc = {:08X})",
+                                 ExceptionToString(exception), pc);
+            parent.system.SetStatus(Core::System::ResultStatus::ErrorCoreExceptionRaised,
+                                    error.c_str());
             Core::ExceptionType exc_type;
             switch (exception) {
             case Dynarmic::A32::Exception::UndefinedInstruction:

@@ -277,6 +277,13 @@ Thread* ThreadManager::PopNextReadyThread() {
             continue;
         }
 
+
+        // Try to time limit the selected thread on core 1
+        if (core_id == 1 && next && GetCpuLimiter()->DoTimeLimit(next)) {
+            // If the thread is time limited, select the next one
+            continue;
+        }
+
         break;
     }
 

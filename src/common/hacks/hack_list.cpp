@@ -214,5 +214,18 @@ HackManager hack_manager = {
                  },
              // clang-format on
          }},
+        {HackType::DELAY_TEXTURE_COPY_COMPLETION,
+         HackEntry{
+             .mode = HackAllowMode::FORCE,
+             .affected_title_ids =
+                 {
+                     // Super Mario 3D Land
+                     0x0004000000054100, // JPN
+                     0x0004000000054000, // USA
+                     0x0004000000053F00, // EUR
+                     0x0004000000089E00, // CHN
+                     0x0004000000089D00, // KOR
+                 },
+         }},
     }};
 }

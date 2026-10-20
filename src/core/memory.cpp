@@ -574,6 +574,14 @@ void MemorySystem::UnmappedAccess(const VAddr vaddr, const T value, bool read) {
 #ifdef ENABLE_GDBSTUB
     if (GDBStub::IsConnected()) {
         GDBStub::Break(SIGSEGV);
+    } else
+#endif
+        if (Settings::values.break_on_unmapped_memory_access) {
+        impl->system.SetStatus(Core::System::ResultStatus::ErrorMemoryExceptionRaised,
+                               message.c_str());
+    }
+
+    LOG_ERROR(HW_Memory, "{}", message);
     }
 #endif
     LOG_ERROR(HW_Memory, "{}", message);

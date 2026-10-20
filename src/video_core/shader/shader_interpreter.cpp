@@ -666,6 +666,7 @@ static void RunInterpreter(const ShaderSetup& setup, ShaderUnit& state,
             case OpCode::Id::EMIT: {
                 auto* emitter = state.emitter_ptr;
                 ASSERT_MSG(emitter, "execute EMIT on VS");
+                emitter->Emit(state.output);
                 emitter->Emit(state.output[state.output_bank]);
                 state.output_bank = !state.output_bank;
                 break;

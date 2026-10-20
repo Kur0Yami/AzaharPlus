@@ -142,8 +142,26 @@
     <string name="controller_clear_all">Clear All Bindings</string>
     <string name="controller_clear_all_confirm">This will remove all current controller bindings.</string>
     <string name="controller_circlepad">Circle Pad</string>
+    <string name="button_circlepad_up">Circle Pad up</string>
+    <string name="button_circlepad_down">Circle Pad down</string>
+    <string name="button_circlepad_left">Circle Pad left</string>
+    <string name="button_circlepad_right">Circle Pad right</string>
     <string name="controller_c">C-Stick</string>
     <string name="controller_hotkeys">Hotkeys</string>
+    <string name="button_misc_modifier">Misc Modifier</string>
+    <string name="misc_action_description">Hold Misc Modifier and press the mapped button to run this action.</string>
+    <string name="misc_action_not_set">Not set</string>
+    <string name="misc_action_clear">Clear</string>
+    <string name="not_bound">Not bound</string>
+    <string name="button_list_title">Buttons</string>
+    <string name="header_combo">Combo</string>
+    <string name="configure_description">Set the modifier, the trigger, and the buttons.</string>
+    <string name="configure_combo_1">Configure Combo Button 1</string>
+    <string name="configure_combo_2">Configure Combo Button 2</string>
+    <string name="configure_combo_3">Configure Combo Button 3</string>
+    <string name="configure_combo_4">Configure Combo Button 4</string>
+    <string name="configure_combo_5">Configure Combo Button 5</string>
+    <string name="configure_combo_chain">Configure Combo Chain</string>
     <string name="controller_hotkeys_description">If the "Hotkey Enable" key is mapped, that key must be pressed in addition to the mapped hotkey</string>
     <string name="controller_hotkey_enable_button">Hotkey Enable</string>
     <string name="controller_triggers">Triggers</string>
@@ -173,12 +191,35 @@
     <string name="button_swap">Swap Screens</string>
     <string name="button_turbo">Turbo</string>
     <string name="button_combo">Combo Button</string>
+    <string name="button_combo_modifier">Combo Modifier</string>
+    <string name="button_combo_2">Combo Button 2</string>
+    <string name="button_combo_modifier_2">Combo Modifier 2</string>
+    <string name="button_combo_3">Combo Button 3</string>
+    <string name="button_combo_modifier_3">Combo Modifier 3</string>
+    <string name="button_combo_4">Combo Button 4</string>
+    <string name="button_combo_modifier_4">Combo Modifier 4</string>
+    <string name="button_combo_5">Combo Button 5</string>
+    <string name="button_combo_modifier_5">Combo Modifier 5</string>
+    <string name="button_combo_chain">Combo Chain</string>
+    <string name="button_combo_chain_modifier">Combo Chain Modifier</string>
+    <string name="button_combo_chain_continue">Combo Chain Continue</string>
+    <string name="button_combo_chain_continue_modifier">Combo Chain Continue Modifier</string>
+    <string name="button_macro">Macro</string>
+    <string name="button_macro_modifier">Macro Modifier</string>
+    <string name="button_macro_2">Macro 2</string>
+    <string name="button_macro_3">Macro 3</string>
+    <string name="button_macro_4">Macro 4</string>
+    <string name="button_macro_5">Macro 5</string>
     <string name="button_x" translatable="false">X</string>
     <string name="button_y" translatable="false">Y</string>
     <string name="button_l" translatable="false">L</string>
     <string name="button_r" translatable="false">R</string>
     <string name="button_zl" translatable="false">ZL</string>
     <string name="button_zr" translatable="false">ZR</string>
+    <string name="button_dpad_up" translatable="false">D-Pad Up</string>
+    <string name="button_dpad_down" translatable="false">D-Pad Down</string>
+    <string name="button_dpad_left" translatable="false">D-Pad Left</string>
+    <string name="button_dpad_right" translatable="false">D-Pad Right</string>
     <string name="input_message_analog_only">This control must be bound to a gamepad analog stick or D-pad axis!</string>
     <string name="input_message_button_only">This control must be bound to a gamepad button!</string>
     <string name="turbo_limit_hotkey">Turbo Speed</string>
@@ -186,6 +227,44 @@
     <string name="turbo_disabled_toast">Turbo Speed Disabled</string>
     <string name="combo_button_settings">Configure Combo Button</string>
     <string name="combo_button_settings_description">Select which buttons are triggered by the Combo Button.</string>
+    <string name="combo_button_settings_2">Configure Combo Button 2</string>
+    <string name="combo_button_settings_3">Configure Combo Button 3</string>
+    <string name="combo_button_settings_4">Configure Combo Button 4</string>
+    <string name="combo_button_settings_5">Configure Combo Button 5</string>
+    <string name="combo_chain_timeout">Combo Chain Timeout</string>
+    <string name="combo_chain_timeout_description">How long (in milliseconds) Combo Chain / Combo Chain Continue waits before resetting back to the first step.</string>
+    <string name="header_macro">Macro</string>
+    <string name="macro_button_settings">Configure Macro Button 1</string>
+    <string name="macro_button_settings_description">Select which buttons are triggered by Macro step 1. These are independent from the Combo Button slots above.</string>
+    <string name="macro_button_settings_2">Configure Macro Button 2</string>
+    <string name="macro_button_settings_3">Configure Macro Button 3</string>
+    <string name="macro_button_settings_4">Configure Macro Button 4</string>
+    <string name="macro_button_settings_5">Configure Macro Button 5</string>
+    <string name="macro_repeat_count">Macro Repeat Count</string>
+    <string name="macro_repeat_count_description">How many times the macro repeats per press. 0 keeps it running until the same trigger is pressed again.</string>
+    <string name="macro_step_delay">Macro Step Delay</string>
+    <string name="macro_repeat_count_2">Macro 2 repeat count</string>
+    <string name="macro_repeat_count_3">Macro 3 repeat count</string>
+    <string name="macro_repeat_count_4">Macro 4 repeat count</string>
+    <string name="macro_repeat_count_5">Macro 5 repeat count</string>
+    <string name="macro_step_delay_2">Macro 2 step delay</string>
+    <string name="macro_step_delay_3">Macro 3 step delay</string>
+    <string name="macro_step_delay_4">Macro 4 step delay</string>
+    <string name="macro_step_delay_5">Macro 5 step delay</string>
+    <string name="macro_step_delay_description">Delay (in milliseconds) between each button press/release in the Macro sequence, to make sure the game registers every input.</string>
+    <string name="header_post_processing_shader">Post Processing Shader</string>
+    <string name="pp_shader_none">None (builtin)</string>
+    <string name="pp_shader_name">Post Processing Shader</string>
+    <string name="pp_shader_name_description">Applies a custom .glsl shader (Dolphin-format, same files work on Citra/Azahar desktop) to the final image. Only takes effect outside of anaglyph/interlaced 3D modes.</string>
+    <string name="pp_shader_import">Import Shader File (.glsl)</string>
+    <string name="pp_shader_import_description">Copy a .glsl post processing shader file into the shader directory so it shows up in the list above.</string>
+    <string name="pp_shader_import_success">Imported %1$s</string>
+    <string name="pp_shader_import_error">Failed to import shader file</string>
+    <string name="shaders_folder">Shaders Folder</string>
+    <string name="shaders_folder_description">Tap to copy this path. Drop .glsl post processing shader files here using any file manager (ZArchiver, MT Manager, etc.), then use Refresh Shader List below.</string>
+    <string name="shaders_folder_copied">Path copied to clipboard</string>
+    <string name="pp_shader_refresh">Refresh Shader List</string>
+    <string name="pp_shader_refresh_description">Re-scan the shaders folder for .glsl files after you\'ve copied one in.</string>
 
     <!-- System files strings -->
     <string name="setup_system_files">System Files</string>
@@ -521,6 +600,26 @@
     <string name="core_error_n3ds_application">File is New 3DS application</string>
     <string name="core_error_core_exception_raised">Core exception raised</string>
     <string name="core_error_savestate_build_mismatch">Savestate version mismatch</string>
+    <string name="core_error_shutdown_requested">Shutdown requested</string>
+    <string name="core_error_unknown">Unknown error</string>
+
+    <string name="loader_error_generic">An error occurred while loading ROM: \"%s (%d)\"</string>
+    <string name="core_error_success">Success</string>
+    <string name="core_error_not_initialized">Not initialized</string>
+    <string name="core_error_get_loader">Loader for file not found, incompatible file type</string>
+    <string name="core_error_system_mode">Failed to parse file</string>
+    <string name="core_error_loader">Generic loader error</string>
+    <string name="core_error_loader_encrypted">Encrypted file</string>
+    <string name="core_error_loader_invalid_format">Corrupted file</string>
+    <string name="core_error_loader_gba_title">File is GBA title</string>
+    <string name="core_error_loader_error_patches">Error applying patches</string>
+    <string name="core_error_loader_patches_invalid_title">Patches are for a different application</string>
+    <string name="core_error_system_files">Missing system files</string>
+    <string name="core_error_savestate">Savestate failed</string>
+    <string name="core_error_artic_disconnected">Artic Base disconnected</string>
+    <string name="core_error_n3ds_application">File is New 3DS application</string>
+    <string name="core_error_core_exception_raised">Core exception raised</string>
+    <string name="core_error_memory_exception_raised">Memory exception raised</string>
     <string name="core_error_shutdown_requested">Shutdown requested</string>
     <string name="core_error_unknown">Unknown error</string>
 
@@ -1118,6 +1217,7 @@
     <string name="multiplayer_room_browser">Public Rooms</string>
     <string name="multiplayer_no_rooms_found">No public rooms found</string>
     <string name="multiplayer_password_required">Password Required</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
     <string name="multiplayer_player_count" translatable="false">: %1$d/%2$d</string>
     <string name="multiplayer_game">Game</string>
     <string name="multiplayer_no_game_info">Any Game</string>

@@ -368,6 +368,7 @@ void SDLState::InitJoystick(int joystick_index) {
     std::lock_guard lock{joystick_map_mutex};
     if (joystick_map.find(guid) == joystick_map.end()) {
         auto joystick = std::make_shared<SDLJoystick>(guid, 0, sdl_joystick, sdl_gamecontroller);
+        joystick->EnableMotion();
         auto vec = std::make_shared<std::vector<std::shared_ptr<SDLJoystick>>>();
         vec->emplace_back(joystick);
         joystick_map[guid] = vec;
@@ -380,11 +381,13 @@ void SDLState::InitJoystick(int joystick_index) {
                                  [](const auto& joystick) { return !joystick->GetSDLJoystick(); });
     if (it != joystick_guid_list->end()) {
         (*it)->SetSDLJoystick(sdl_joystick, sdl_gamecontroller);
+        (*it)->EnableMotion();
         joystick_vector->emplace_back(*it);
         return;
     }
     const int port = static_cast<int>(joystick_guid_list->size());
     auto joystick = std::make_shared<SDLJoystick>(guid, port, sdl_joystick, sdl_gamecontroller);
+    joystick->EnableMotion();
     joystick_guid_list->emplace_back(joystick);
     joystick_vector->emplace_back(joystick);
 }
@@ -518,6 +521,7 @@ public:
     bool GetStatus() const override {
         if (port >= 0 && joysticks && static_cast<int>(joysticks->size()) > port &&
             joysticks->at(port)) {
+            return joysticks->at(port)->GetAxis(axis, isController);
 
             float axis_value = joysticks->at(port)->GetAxis(axis, isController);
             if (trigger_if_greater && axis_value > threshold)
@@ -1015,6 +1019,19 @@ public:
                     // starting a new movement.
                     axisStartTimestamps[id][axis] = event.jaxis.timestamp;
                     axis_event_count[id][axis] = 1;
+                    if (IsAxisAtExtreme(value)) {
+                        // a single event with a value right at the extreme.
+                        // Assume this is a digital "axis" and send the down
+                        // signal with center set to 0.
+                        if (controller) {
+                            event.caxis.value = std::copysign(32767, value);
+                        } else {
+                            event.jaxis.value = std::copysign(32767, value);
+                        }
+                        axis_center_value[id][axis] = 0;
+                        return SDLEventToButtonParamPackage(state, event, true);
+                    }
+                    // otherwise, this is our first event, identify the center
                     if (axis_center_value.contains(id) && axis_center_value[id].contains(axis) &&
                         IsAxisAtExtreme(value)) {
                         // a single event with a value at the extreme after we
@@ -1035,6 +1052,12 @@ public:
                     break;
                 } else {
                     axis_event_count[id][axis]++;
+                    // only two events, second one at center, means this is a digital release
+                    if (axis_event_count[id][axis] == 2 && IsAxisAtCenter(value, id, axis) &&
+                        IsAxisAtExtreme(axis_memory[id][axis])) {
+                        // send the up signal for this digital axis, and clear.
+                        axis_event_count[id][axis] = 0;
+                        axis_memory[id][axis] = 0;
                     if (axis_event_count[id][axis] == 2 && IsAxisAtPole(value) &&
                         IsAxisAtPole(axis_memory[id][axis])) {
                         // if there are two events and both are at poles, the only reasonable
@@ -1061,6 +1084,21 @@ public:
                         } else {
                             event.jaxis.value = static_cast<Sint16>(std::copysign(
                                 32767, axis_memory[id][axis] - axis_center_value[id][axis]));
+                        }
+                        axis_memory[id][axis] = 0;
+                        axis_event_count[id][axis] = 0;
+                        return SDLEventToButtonParamPackage(state, event, false);
+                    } else if (IsAxisAtCenter(axis_memory[id][axis], id, axis) &&
+                               IsAxisPastThreshold(event.jaxis.value, id, axis)) {
+                        if (controller) {
+                            event.caxis.value = static_cast<Sint16>(
+                                std::copysign(32767, value - axis_center_value[id][axis]));
+                            axis_memory[id][axis] = event.caxis.value;
+                        } else {
+                            event.jaxis.value = static_cast<Sint16>(
+                                std::copysign(32767, value - axis_center_value[id][axis]));
+                            axis_memory[id][axis] = event.jaxis.value;
+                        }
                         }
                         axis_memory[id][axis] = axis_center_value[id][axis];
                         axis_event_count[id][axis] = 0;
@@ -1110,6 +1148,7 @@ public:
 
 private:
     bool IsAxisAtCenter(int16_t value, SDL_JoystickID id, uint8_t axis) {
+        return std::abs(value - axis_center_value[id][axis]) < 367;
         return axis_center_value[id].contains(axis) &&
                std::abs(value - axis_center_value[id][axis]) < 367;
     }
@@ -1119,6 +1158,7 @@ private:
     }
 
     bool IsAxisAtExtreme(int16_t value) {
+        return std::abs(value) > 32766;
         return std::abs(value) > 32300;
     }
 

@@ -244,6 +244,7 @@ class GamesFragment : Fragment() {
         return (
             version.contains("alpha") ||
                 version.contains("beta") ||
+                version.contains("rc")
                 version.contains("rc") ||
                 version.contains("test")
             )
@@ -332,6 +333,7 @@ class GamesFragment : Fragment() {
         val leftInsets = barInsets.left + cutoutInsets.left
         val rightInsets = barInsets.right + cutoutInsets.right
         val mlpSwipe = binding.swipeRefresh.layoutParams as MarginLayoutParams
+        if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
         if (view.layoutDirection == View.LAYOUT_DIRECTION_LTR) {
             mlpSwipe.leftMargin = leftInsets + spacingNavigationRail
             mlpSwipe.rightMargin = rightInsets

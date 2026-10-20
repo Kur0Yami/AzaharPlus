@@ -9,8 +9,8 @@ fi
 
 cd src/android
 chmod +x ./gradlew
-./gradlew assembleRelease
-./gradlew bundleRelease
+./gradlew assembleVanillaRelease
+./gradlew bundleVanillaRelease
 
 ccache -s -v
 

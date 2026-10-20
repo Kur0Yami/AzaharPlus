@@ -121,6 +121,7 @@ foreach(KEY IN ITEMS
     "log_filter"
     "log_regex_filter"
     "toggle_unique_data_console_type"
+    "break_on_unmapped_memory_access"
     "enable_exception_handler"
     "use_integer_scaling"
     "layouts_to_cycle"
@@ -277,6 +278,18 @@ if (ANDROID)
         "performance_overlay_position"
         "enable_secondary_display"
         "combo_button_buttons"
+        "combo_button_buttons_2"
+        "combo_button_buttons_3"
+        "combo_button_buttons_4"
+        "combo_button_buttons_5"
+        "combo_chain_timeout_ms"
+        "macro_repeat_count"
+        "macro_step_delay_ms"
+        "macro_button_buttons"
+        "macro_button_buttons_2"
+        "macro_button_buttons_3"
+        "macro_button_buttons_4"
+        "macro_button_buttons_5"
     )
         string(REPLACE "_" "_1" KEY_JNI_ESCAPED ${KEY})
         set(SETTING_KEY_LIST "${SETTING_KEY_LIST}\n\"${KEY}\",")

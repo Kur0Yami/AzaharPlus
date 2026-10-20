@@ -499,6 +499,14 @@ void PicaCore::HandleSpecialRegBatch(u32 id, const u32* values, u32 count) {
     case PICA_REG_INDEX(lighting.lut_data[7]): {
         auto& lut_config = regs.internal.lighting.lut_config;
 
+    delay_generator.AddCommands(1);
+
+    // Expand a 4-bit mask to 4-byte mask, e.g. 0b0101 -> 0x00FF00FF
+    constexpr std::array<u32, 16> ExpandBitsToBytes = {
+        0x00000000, 0x000000ff, 0x0000ff00, 0x0000ffff, 0x00ff0000, 0x00ff00ff,
+        0x00ffff00, 0x00ffffff, 0xff000000, 0xff0000ff, 0xff00ff00, 0xff00ffff,
+        0xffff0000, 0xffff00ff, 0xffffff00, 0xffffffff,
+    };
         for (u32 i = 0; i < count; i++) {
             const u32 prev =
                 std::exchange(lighting

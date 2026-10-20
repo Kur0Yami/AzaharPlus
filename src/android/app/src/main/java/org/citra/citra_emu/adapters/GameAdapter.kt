@@ -211,6 +211,23 @@ class GameAdapter(
                 View.VISIBLE
             }
 
+            binding.textGameTitle.text = game.title
+            binding.textCompany.text = game.company
+            binding.textGameRegion.text = game.regions
+            binding.imageCartridge.visibility =
+                if (preferences.getString("insertedCartridge", "") != game.path) {
+                    View.GONE
+                } else {
+                    View.VISIBLE
+                }
+
+            val backgroundColorId =
+                if (
+                    isValidGame(
+                        game.filename.substring(game.filename.lastIndexOf(".") + 1).lowercase()
+                    )
+                ) {
+                    R.attr.colorSurface
             binding.textGameTitle.text = if (game.fileType == "unknown") {
                 CitraApplication.appContext.getString(R.string.invalid_rom)
             } else {
@@ -500,6 +517,7 @@ class GameAdapter(
 
         bottomSheetView.findViewById<TextView>(R.id.about_game_title).text = game.title
         bottomSheetView.findViewById<TextView>(R.id.about_game_company).text = game.company
+        bottomSheetView.findViewById<TextView>(R.id.about_game_region).text = game.regions
         bottomSheetView.findViewById<TextView>(R.id.about_game_region).text =
             context.getString(R.string.game_context_region) + " " + translateRegions(game.regions)
         bottomSheetView.findViewById<TextView>(R.id.about_game_id).text =
@@ -780,6 +798,9 @@ class GameAdapter(
             dialogShortcutBinding!!.shortcutIcon.setImageBitmap(scaledBitmap)
         }
     }
+
+    private fun isValidGame(extension: String): Boolean = Game.badExtensions.stream()
+        .noneMatch { extension == it.lowercase() }
 
     private class DiffCallback : DiffUtil.ItemCallback<Game>() {
         override fun areItemsTheSame(oldItem: Game, newItem: Game): Boolean {

@@ -149,4 +149,16 @@ object SettingKeys {
     external fun performance_overlay_position(): String
     external fun enable_secondary_display(): String
     external fun combo_button_buttons(): String
+    external fun combo_button_buttons_2(): String
+    external fun combo_button_buttons_3(): String
+    external fun combo_button_buttons_4(): String
+    external fun combo_button_buttons_5(): String
+    external fun combo_chain_timeout_ms(): String
+    external fun macro_repeat_count(): String
+    external fun macro_step_delay_ms(): String
+    external fun macro_button_buttons(): String
+    external fun macro_button_buttons_2(): String
+    external fun macro_button_buttons_3(): String
+    external fun macro_button_buttons_4(): String
+    external fun macro_button_buttons_5(): String
 }

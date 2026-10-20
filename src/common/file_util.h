@@ -549,6 +549,35 @@ public:
      */
     size_t WriteLine(const std::string_view line);
 
+    [[nodiscard]] virtual bool IsOpen() const {
+        return nullptr != m_file;
+    }
+
+    // m_good is set to false when a read, write or other function fails
+    [[nodiscard]] virtual bool IsGood() const {
+        return m_good;
+    }
+    [[nodiscard]] virtual int GetFd() const {
+#ifdef HAVE_LIBRETRO_VFS
+        if (m_file == nullptr)
+            return -1;
+        return fileno(filestream_get_vfs_handle(m_file)->fp);
+#else
+#ifdef ANDROID
+        if (!AndroidUtils::CanUseRawFS()) {
+            return m_fd;
+
+    /**
+     * Writes the specified line to the file
+     * automatically appending a newline
+     * character to it.
+     *
+     * @param line The input string to write
+     *
+     * @returns Count of bytes written, including the newline.
+     */
+    size_t WriteLine(const std::string_view line);
+
     // Returns the type of the file.
     IOType GetType() const {
         IOType ret;

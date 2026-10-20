@@ -223,6 +223,32 @@ object NativeLibrary {
      */
     external fun swapScreens(swapScreens: Boolean, rotation: Int)
 
+    /**
+     * Lightweight live-drag setter for the Custom Layout screen editor. Writes the layout
+     * values directly and refreshes the framebuffer layout only -- unlike [reloadSettings],
+     * this does not re-read the config file or re-apply every other setting, so it's safe
+     * to call on every touch-move frame while dragging. Does not persist to disk by itself.
+     */
+    external fun setCustomLayout(
+        isPortrait: Boolean,
+        topX: Int,
+        topY: Int,
+        topWidth: Int,
+        topHeight: Int,
+        bottomX: Int,
+        bottomY: Int,
+        bottomWidth: Int,
+        bottomHeight: Int
+    )
+
+    /**
+     * Returns the current top/bottom screen render rects, in surface pixel coordinates, as
+     * [topLeft, topTop, topRight, topBottom, bottomLeft, bottomTop, bottomRight, bottomBottom],
+     * or null if there's no active emulation window yet. A disabled screen comes back as a
+     * zero-size rect rather than being omitted.
+     */
+    external fun getScreenLayout(): IntArray?
+
     external fun initializeGpuDriver(
         hookLibDir: String?,
         customDriverDir: String?,
@@ -233,6 +259,20 @@ object NativeLibrary {
     external fun areKeysAvailable(): Boolean
 
     external fun getHomeMenuPath(region: Int): String
+
+    /**
+     * Lists the names of post processing shader (.glsl) files currently sitting in the
+     * emulator's shader directory. Backed by VideoCore::GetPostProcessingShaderList, shared by
+     * both the OpenGL and Vulkan renderers -- doesn't need to know which backend is active.
+     */
+    external fun getPostProcessingShaderList(): Array<String>
+
+    /**
+     * Returns the absolute path to the emulator's shader directory, creating it first if it
+     * doesn't exist yet. Used as the copy destination when importing a post processing shader
+     * file picked by the user.
+     */
+    external fun getShadersDirectory(): String
 
     external fun getSystemTitleIds(systemType: Int, region: Int): LongArray
 
@@ -988,6 +1028,7 @@ object NativeLibrary {
         ErrorArticDisconnected(12, R.string.core_error_artic_disconnected),
         ErrorN3DSApplication(13, R.string.core_error_n3ds_application),
         ErrorCoreExceptionRaised(14, R.string.core_error_core_exception_raised),
+        ErrorMemoryExceptionRaised(15, R.string.core_error_memory_exception_raised),
         ErrorSavestateBuildMismatch(15, R.string.core_error_savestate_build_mismatch),
         ShutdownRequested(16, R.string.core_error_shutdown_requested),
         ErrorUnknown(17, R.string.core_error_unknown);

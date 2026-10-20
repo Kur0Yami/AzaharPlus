@@ -1,3 +1,6 @@
+// Copyright Citra Emulator Project / Azahar Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
 // Copyright 2015-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.txt file included.
@@ -87,6 +90,27 @@ void Break(int signal);
 void OnProcessExit(u32 process_id);
 
 /**
+ * Signal to the GDB stub that the specified thread ID is exiting
+ */
+void OnThreadExit(u32 thread_id);
+
+/// Read and handle packet from gdb client.
+void HandlePacket(Core::System& system);
+ */
+void Break(int signal);
+
+/**
+ * Signal to the GDB stub that the specified process ID is exiting
+ */
+void OnProcessExit(u32 process_id);
+
+/**
+ * Check if a breakpoint of the specified type exists at the given address.
+ *
+ * @param addr Address of breakpoint.
+ * @param access_len Access size in bytes.
+ * @param type Type of breakpoint.
+ */
  * Signal to the GDB stub that the specified thread ID is exiting
  */
 void OnThreadExit(u32 thread_id);

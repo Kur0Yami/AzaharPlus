@@ -27,6 +27,8 @@ enum class StringSetting(
         "_back"
     ),
     WEB_API_URL(SettingKeys.web_api_url(), Settings.SECTION_NETWORK, "http://88.198.47.46:5000"),
+    NETWORK_TOKEN(SettingKeys.network_token(), Settings.SECTION_NETWORK, ""),
+    PP_SHADER_NAME(SettingKeys.pp_shader_name(), Settings.SECTION_RENDERER, "None (builtin)");
     NETWORK_TOKEN(SettingKeys.network_token(), Settings.SECTION_NETWORK, "");
 
     override var string: String = defaultValue

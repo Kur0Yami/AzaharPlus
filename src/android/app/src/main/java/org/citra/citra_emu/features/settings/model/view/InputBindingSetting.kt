@@ -128,6 +128,23 @@ class InputBindingSetting(val abstractSetting: AbstractSetting, titleId: Int) :
                 Settings.HOTKEY_QUICKLOAD -> Hotkey.QUICKLOAD.button
                 Settings.HOTKEY_TURBO_LIMIT -> Hotkey.TURBO_LIMIT.button
                 Settings.HOTKEY_BUTTON_COMBO -> Hotkey.COMBO_BUTTON.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER -> Hotkey.COMBO_MODIFIER.button
+                Settings.HOTKEY_BUTTON_COMBO_2 -> Hotkey.COMBO_BUTTON_2.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER_2 -> Hotkey.COMBO_MODIFIER_2.button
+                Settings.HOTKEY_BUTTON_COMBO_3 -> Hotkey.COMBO_BUTTON_3.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER_3 -> Hotkey.COMBO_MODIFIER_3.button
+                Settings.HOTKEY_BUTTON_COMBO_4 -> Hotkey.COMBO_BUTTON_4.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER_4 -> Hotkey.COMBO_MODIFIER_4.button
+                Settings.HOTKEY_BUTTON_COMBO_5 -> Hotkey.COMBO_BUTTON_5.button
+                Settings.HOTKEY_BUTTON_COMBO_MODIFIER_5 -> Hotkey.COMBO_MODIFIER_5.button
+                Settings.HOTKEY_BUTTON_COMBO_CHAIN -> Hotkey.COMBO_CHAIN.button
+                Settings.HOTKEY_BUTTON_COMBO_CHAIN_MODIFIER -> Hotkey.COMBO_CHAIN_MODIFIER.button
+                Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE -> Hotkey.COMBO_CHAIN_CONTINUE.button
+                Settings.HOTKEY_BUTTON_COMBO_CHAIN_CONTINUE_MODIFIER ->
+                    Hotkey.COMBO_CHAIN_CONTINUE_MODIFIER.button
+                Settings.HOTKEY_BUTTON_MACRO -> Hotkey.MACRO_TRIGGER.button
+                Settings.HOTKEY_BUTTON_MACRO_MODIFIER -> Hotkey.MACRO_MODIFIER.button
+                Settings.HOTKEY_BUTTON_MISC_MODIFIER -> Hotkey.MISC_MODIFIER.button
                 else -> -1
             }
 

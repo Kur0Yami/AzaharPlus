@@ -398,6 +398,9 @@ void Context::MakeRequest() {
     // Apply URL replacements if any
     url_info.host = url_replacer->Apply(url_info.host);
 
+    request.progress = [this](u64 current, u64 total) -> bool {
+        // TODO(B3N30): Is there a state that shows response header are available
+        current_download_size_bytes = current;
     request.progress = [this](u64, u64 total) -> bool {
         total_download_size_bytes = total;
         return true;
@@ -886,6 +889,15 @@ void HTTP_C::CreateContext(Kernel::HLERequestContext& ctx) {
         return;
     }
 
+    contexts.try_emplace(++context_counter);
+    contexts[context_counter].url = std::move(url);
+    contexts[context_counter].method = method;
+    contexts[context_counter].state = RequestState::NotStarted;
+    // TODO(Subv): Find a correct default value for this field.
+    contexts[context_counter].socket_buffer_size = 0;
+    contexts[context_counter].handle = context_counter;
+    contexts[context_counter].session_id = session_data->session_id;
+    contexts[context_counter].url_replacer = &url_replacer;
     auto& http_context =
         *contexts.try_emplace(++context_counter, std::make_shared<Context>()).first->second;
     http_context.url = std::move(url);

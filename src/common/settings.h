@@ -480,6 +480,30 @@ struct Values {
     std::vector<TouchFromButtonMap> touch_from_button_maps;
     Setting<bool> use_artic_base_controller{false, Keys::use_artic_base_controller};
 
+    // List of buttons (comma-separated button indices) triggered by each combo button slot.
+    // Android-only: the Combo Button hotkey feature only exists on the Android touchscreen overlay.
+#ifdef ANDROID
+    Setting<std::string> combo_button_buttons{"", Keys::combo_button_buttons};
+    Setting<std::string> combo_button_buttons_2{"", Keys::combo_button_buttons_2};
+    Setting<std::string> combo_button_buttons_3{"", Keys::combo_button_buttons_3};
+    Setting<std::string> combo_button_buttons_4{"", Keys::combo_button_buttons_4};
+    Setting<std::string> combo_button_buttons_5{"", Keys::combo_button_buttons_5};
+    // Combo Chain: how long (ms) before it resets back to the first step after no presses.
+    Setting<u16> combo_chain_timeout_ms{2000, Keys::combo_chain_timeout_ms};
+    // Macro: how many full cycles one press plays, and the delay (ms) between each
+    // press/release step in the sequence.
+    Setting<u8> macro_repeat_count{5, Keys::macro_repeat_count};
+    Setting<u16> macro_step_delay_ms{80, Keys::macro_step_delay_ms};
+    // List of buttons (comma-separated button indices) triggered by each Macro step.
+    // Independent from combo_button_buttons above -- Macro has its own 5 slots so
+    // configuring it doesn't consume a Combo Button slot.
+    Setting<std::string> macro_button_buttons{"", Keys::macro_button_buttons};
+    Setting<std::string> macro_button_buttons_2{"", Keys::macro_button_buttons_2};
+    Setting<std::string> macro_button_buttons_3{"", Keys::macro_button_buttons_3};
+    Setting<std::string> macro_button_buttons_4{"", Keys::macro_button_buttons_4};
+    Setting<std::string> macro_button_buttons_5{"", Keys::macro_button_buttons_5};
+#endif
+
     SwitchableSetting<bool> enable_gamemode{true, Keys::enable_gamemode};
 
     // Core
@@ -535,6 +559,7 @@ struct Values {
     SwitchableSetting<bool> async_presentation{true, Keys::async_presentation};
     SwitchableSetting<bool> use_hw_shader{true, Keys::use_hw_shader};
     SwitchableSetting<bool> use_disk_shader_cache{true, Keys::use_disk_shader_cache};
+    SwitchableSetting<bool> use_skip_duplicate_frames{true, Keys::use_skip_duplicate_frames};
     SwitchableSetting<bool> use_skip_duplicate_frames{false, Keys::use_skip_duplicate_frames};
     SwitchableSetting<bool> shaders_accurate_mul{true, Keys::shaders_accurate_mul};
 #ifdef ANDROID // TODO: Fuck this -OS
@@ -656,6 +681,7 @@ struct Values {
     Setting<bool> instant_debug_log{false, Keys::instant_debug_log};
     Setting<bool> enable_rpc_server{false, Keys::enable_rpc_server};
     Setting<bool> toggle_unique_data_console_type{false, Keys::toggle_unique_data_console_type};
+    Setting<bool> break_on_unmapped_memory_access{false, Keys::break_on_unmapped_memory_access};
     Setting<bool> enable_exception_handler{false, Keys::enable_exception_handler};
 
     // WebService

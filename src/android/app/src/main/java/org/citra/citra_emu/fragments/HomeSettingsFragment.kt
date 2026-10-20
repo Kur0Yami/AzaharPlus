@@ -343,6 +343,7 @@ class HomeSettingsFragment : Fragment() {
 
         binding.linearLayoutSettings.updatePadding(bottom = spacingNavigation)
 
+        if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
         if (view.layoutDirection == View.LAYOUT_DIRECTION_LTR) {
             binding.linearLayoutSettings.updatePadding(left = spacingNavigationRail)
         } else {

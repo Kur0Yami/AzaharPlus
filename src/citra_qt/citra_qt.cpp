@@ -2431,6 +2431,27 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Debug_Schedule_All,
                  [this] { system.DebugUnscheduleAllThreadsFromFrontend(false); });
 
+    // Tools debug
+    connect_menu(ui->action_Debug_Pause, [this] {
+        if (emu_thread) {
+            emu_thread->SetRunning(false);
+        }
+    });
+    connect_menu(ui->action_Debug_Resume, [this] {
+        if (emu_thread) {
+            emu_thread->SetRunning(true);
+        }
+    });
+    connect_menu(ui->action_Debug_Step, [this] {
+        if (emu_thread) {
+            emu_thread->ExecStep();
+        }
+    });
+    connect_menu(ui->action_Debug_Unschedule_All,
+                 [this] { system.DebugUnscheduleAllThreadsFromFrontend(true); });
+    connect_menu(ui->action_Debug_Schedule_All,
+                 [this] { system.DebugUnscheduleAllThreadsFromFrontend(false); });
+
     // Tools
     connect_menu(ui->action_Compress_ROM_File, &GMainWindow::OnCompressFile);
     connect_menu(ui->action_Decompress_ROM_File, &GMainWindow::OnDecompressFile);
@@ -2653,6 +2674,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
             break;
         case Core::System::ResultStatus::ErrorLoader:
             QMessageBox::critical(this, tr("Generic load error"),
+                                  tr("An generic load error occurred while loading the "
                                   tr("A generic load error occurred while loading the "
                                      "application.<br/>Please check the log for more details."));
             break;
@@ -3581,6 +3603,8 @@ void GMainWindow::OnMenuSetUpSystemFiles() {
 
     QRadioButton radio1(&dialog);
     QRadioButton radio2(&dialog);
+    QString new3dsSetupString = tr("Old 3DS setup");
+    QString old3dsSetupString = tr("New 3DS setup");
     QString new3dsSetupString = tr("New 3DS setup");
     QString old3dsSetupString = tr("Old 3DS setup");
     QString availableIcon = QStringLiteral("(\u2139\uFE0F) ");
@@ -3899,6 +3923,93 @@ void GMainWindow::UninstallTitles(
                                  tr("Successfully uninstalled '%1'.").arg(first_name));
         emit InstalledTitlesChanged();
     }
+}
+
+void GMainWindow::OnPreviousAmiibo() {
+	LOG_ERROR(Frontend, "OnPreviousAmiibo");
+	
+	if (!emu_thread || !emu_thread->IsRunning()) [[unlikely]] {
+        return;
+    }
+
+    Service::SM::ServiceManager& sm = system.ServiceManager();
+    auto nfc = sm.GetService<Service::NFC::Module::Interface>("nfc:u");
+    if (nfc == nullptr) {
+        return;
+    }
+
+    std::scoped_lock lock{system.Kernel().GetHLELock()};
+    if (nfc->IsTagActive()) {
+        QMessageBox::warning(this, tr("Error opening amiibo data file"),
+                             tr("A tag is already in use."));
+        return;
+    }
+
+    if (!nfc->IsSearchingForAmiibos()) {
+        QMessageBox::warning(this, tr("Error opening amiibo data file"),
+                             tr("Application is not looking for amiibos."));
+        return;
+    }
+    
+	LoadAmiibo(QStringLiteral("@previous"));
+}
+
+void GMainWindow::OnMenuAmiiboFileAction() {
+    QAction* action = qobject_cast<QAction*>(sender());
+    ASSERT(action);
+
+    const QString amiiboId = action->data().toString();
+	
+	QString out_path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir))
+						 + QStringLiteral(DIR_SEP) 
+						 + QString::fromStdString(amiibos[amiiboId.toStdString()]);
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Generate Amiibo File"),
+													out_path,
+													tr("Amiibo (*.bin)"));
+	if(fileName.length() == 0) return;
+	
+	std::string sfilename = fileName.toStdString();
+	
+	if(!fileName.endsWith(QStringLiteral(".bin")))
+	{
+		sfilename = sfilename + ".bin";
+	}
+	
+	Service::NFC::makeAmiiboFile(amiiboId.toStdString(), sfilename);
+}
+
+void GMainWindow::OnMenuAmiiboAction() {
+    QAction* action = qobject_cast<QAction*>(sender());
+    ASSERT(action);
+
+    const QString amiiboId = action->data().toString();
+	
+	if (!emu_thread || !emu_thread->IsRunning()) [[unlikely]] {
+        return;
+    }
+
+    Service::SM::ServiceManager& sm = system.ServiceManager();
+    auto nfc = sm.GetService<Service::NFC::Module::Interface>("nfc:u");
+    if (nfc == nullptr) {
+        return;
+    }
+
+    std::scoped_lock lock{system.Kernel().GetHLELock()};
+    if (nfc->IsTagActive()) {
+        QMessageBox::warning(this, tr("Error opening amiibo data file"),
+                             tr("A tag is already in use."));
+        return;
+    }
+
+    if (!nfc->IsSearchingForAmiibos()) {
+        QMessageBox::warning(this, tr("Error opening amiibo data file"),
+                             tr("Application is not looking for amiibos."));
+        return;
+    }
+    
+	ui->action_Previous_Amiibo->setEnabled(true);
+	
+	LoadAmiibo(amiiboId);
 }
 
 void GMainWindow::OnPreviousAmiibo() {
@@ -4721,6 +4832,17 @@ void GMainWindow::OnCaptureScreenshot() {
 
 #ifdef ENABLE_FFMPEG
 void GMainWindow::OnDumpVideo() {
+    if (DynamicLibrary::FFmpeg::LoadFFmpeg()) {
+        if (ui->action_Dump_Video->isChecked()) {
+            OnStartVideoDumping();
+        } else {
+            OnStopVideoDumping();
+        }
+    } else {
+        ui->action_Dump_Video->setChecked(false);
+        ShowFFmpegErrorMessage();
+    }
+}
     if (ui->action_Dump_Video->isChecked()) {
         OnStartVideoDumping();
     } else {
@@ -5346,6 +5468,17 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
                    .c_str());
         error_severity_icon = QMessageBox::Icon::Critical;
         can_continue = false;
+    } else if (result == Core::System::ResultStatus::ErrorCoreExceptionRaised) {
+        title = tr("An exception occurred");
+        message = tr("An exception occurred while executing the emulated application.\n\n");
+        message += QString::fromStdString(details);
+        error_severity_icon = QMessageBox::Icon::Critical;
+        can_continue = false;
+    } else if (result == Core::System::ResultStatus::ErrorMemoryExceptionRaised) {
+        title = tr("An invalid memory access occurred");
+        message =
+            tr("An invalid memory access occurred while executing the emulated application.\n\n");
+        message += QString::fromStdString(details);
     } else if (result == Core::System::ResultStatus::ErrorSavestateBuildMismatch) {
         title = tr("Savestate version mismatch");
         message = tr("Could not load savestate because it was created on a different Azahar "

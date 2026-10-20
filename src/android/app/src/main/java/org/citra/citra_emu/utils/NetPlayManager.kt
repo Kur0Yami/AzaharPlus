@@ -1,10 +1,10 @@
-// Copyright 2026 Citra Emulator Project / Azahar Emulator Project
+// Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the misc/licenses/gplv2.txt file included.
+// Refer to the license.txt file included.
 
 // Copyright 2024 Mandarine Project
 // Licensed under GPLv2 or any later version
-// Refer to the misc/licenses/gplv2.txt file included.
+// Refer to the license.txt file included.
 
 package org.citra.citra_emu.utils
 
@@ -77,6 +77,17 @@ object NetPlayManager {
     )
 
     private var messageListener: ((Int, String) -> Unit)? = null
+    private val messageListeners = mutableListOf<(Int, String) -> Unit>()
+
+    // Multiple listeners (e.g. in-game floating chat + ChatDialog). Unlike setOnMessageReceivedListener,
+    // adding one does not replace the others.
+    fun addOnMessageReceivedListener(listener: (Int, String) -> Unit) {
+        if (!messageListeners.contains(listener)) messageListeners.add(listener)
+    }
+
+    fun removeOnMessageReceivedListener(listener: (Int, String) -> Unit) {
+        messageListeners.remove(listener)
+    }
     private var adapterRefreshListener: ((Int, String) -> Unit)? = null
 
     private val usernameRegex = Regex("^[a-zA-Z0-9._\\- ]{4,20}$")
@@ -229,6 +240,7 @@ object NetPlayManager {
         }
 
         messageListener?.invoke(type, msg)
+        messageListeners.toList().forEach { it(type, msg) }
         adapterRefreshListener?.invoke(type, msg)
     }
 

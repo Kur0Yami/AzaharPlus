@@ -1,6 +1,6 @@
-// Copyright 2026 Citra Emulator Project / Azahar Emulator Project
+// Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the misc/licenses/gplv2.txt file included.
+// Refer to the license.txt file included.
 
 package org.citra.citra_emu.dialogs
 
@@ -164,6 +164,15 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
                 } else {
                     binding.gameName.text = context.getString(R.string.multiplayer_no_game_info)
                 }
+
+                binding.roomAddress.text = "${room.ip}:${room.port}"
+
+                binding.roomMembers.text = room.members.joinToString(", ") { m ->
+                    val who = m.nickname.ifEmpty { m.username }
+                    if (m.gameName.isNotEmpty()) "$who (${m.gameName})" else who
+                }
+                binding.roomMembers.visibility =
+                    if (room.members.isEmpty()) View.GONE else View.VISIBLE
 
                 itemView.setOnClickListener { onRoomSelected(room) }
             }

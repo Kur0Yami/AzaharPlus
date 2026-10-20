@@ -125,6 +125,9 @@ System::ResultStatus System::RunLoop(bool tight_loop) {
         for (auto& cpu_core : cpu_cores) {
             cpu_core->ClearBreakFlag();
         }
+        GDBStub::HandlePacket(*this);
+    }
+#endif
     }
 #endif
 
@@ -303,6 +306,11 @@ System::ResultStatus System::RunLoop(bool tight_loop) {
             } else {
                 // In the rare case the break flag is set (due to exception thrown)
                 // there is probably no need to adjust the timer accordingly.
+                if (tight_loop) {
+                    cpu_core->Run();
+                } else {
+                    cpu_core->Step();
+                }
                 ExecuteCore(*cpu_core, thread, tight_loop);
             }
             max_slice = cpu_core->GetTimer().GetTicks() - start_ticks;
@@ -310,6 +318,7 @@ System::ResultStatus System::RunLoop(bool tight_loop) {
         }
     }
 
+    Reschedule();
     return status;
 }
 
