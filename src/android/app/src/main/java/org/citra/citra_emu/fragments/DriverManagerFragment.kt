@@ -30,6 +30,12 @@ import org.citra.citra_emu.utils.GpuDriverHelper
 import org.citra.citra_emu.viewmodel.DriverViewModel
 import org.citra.citra_emu.viewmodel.HomeViewModel
 
+import android.view.MenuItem
+import android.widget.Toast
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.citra.citra_emu.utils.DriverFetcher
 class DriverManagerFragment : Fragment() {
     private var _binding: FragmentDriverManagerBinding? = null
     private val binding get() = _binding!!
@@ -71,6 +77,17 @@ class DriverManagerFragment : Fragment() {
 
         binding.buttonInstall.setOnClickListener {
             getDriver.launch(arrayOf("application/zip"))
+        }
+
+        binding.toolbarDrivers.menu.add(0, 9001, 0, "Fetch")
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS or MenuItem.SHOW_AS_ACTION_WITH_TEXT)
+        binding.toolbarDrivers.setOnMenuItemClickListener {
+            if (it.itemId == 9001) {
+                showFetchDialog()
+                true
+            } else {
+                false
+            }
         }
 
         binding.listDrivers.apply {
@@ -142,6 +159,52 @@ class DriverManagerFragment : Fragment() {
         )
 
         windowInsets
+    }
+
+    private fun showFetchDialog() {
+        Toast.makeText(requireContext(), "Mengambil daftar driver...", Toast.LENGTH_SHORT).show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val assets = withContext(Dispatchers.IO) { DriverFetcher.fetchAll() }
+            if (_binding == null) return@launch
+            if (assets.isEmpty()) {
+                Toast.makeText(requireContext(), "Tidak ada driver, cek koneksi", Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            val labels = assets.map { it.name + "  [" + it.repo + "]" }.toTypedArray()
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Fetch driver")
+                .setItems(labels) { _, which -> installFetched(assets[which]) }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private fun installFetched(asset: DriverFetcher.DriverAsset) {
+        IndeterminateProgressDialogFragment.newInstance(
+            requireActivity(),
+            R.string.installing_driver,
+            false
+        ) {
+            if (GpuDriverHelper.driverStoragePath.findFile(asset.name) != null) {
+                return@newInstance getString(R.string.driver_already_installed)
+            }
+            val result = try {
+                DriverFetcher.downloadToDriverStorage(requireContext(), asset)
+            } catch (_: IOException) {
+                null
+            } ?: return@newInstance getString(R.string.select_gpu_driver_error)
+            val driverFile = result.first
+            val driverData = result.second
+            val driverInList =
+                driverViewModel.driverList.value.firstOrNull { it.second == driverData }
+            if (driverInList != null) {
+                driverFile.delete()
+                return@newInstance getString(R.string.driver_already_installed)
+            }
+            driverViewModel.addDriver(Pair(driverFile.uri, driverData))
+            driverViewModel.setNewDriverInstalled(true)
+            return@newInstance Any()
+        }.show(childFragmentManager, IndeterminateProgressDialogFragment.TAG)
     }
 
     private val getDriver =
